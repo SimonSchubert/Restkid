@@ -25,14 +25,14 @@ kotlin {
             implementation("com.github.msink:libui:0.1.2")
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:0.10.0")
             // implementation("io.ktor:ktor-http-native:1.1.2")
-            // implementation("io.ktor:ktor-client-curl:1.1.2")
-            // implementation("io.ktor:ktor-client-core-native:1.1.2")
+            implementation("io.ktor:ktor-client-curl:1.1.3")
+            implementation("io.ktor:ktor-client-core-native:1.1.3")
         }
     }
 
-    iosX64 {
+    macosX64 {
         binaries.all {
-            linkerOpts = mutableListOf("-L/usr/local/opt/curl/lib", "-I/usr/local/opt/curl/include")
+            linkerOpts = mutableListOf("-L/usr/local/opt/curl/lib", "-I/usr/local/opt/curl/include", "-lcurl")
         }
     }
 }
