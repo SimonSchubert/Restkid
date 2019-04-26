@@ -17,16 +17,12 @@ data class Api(
 
 @Serializable
 data class ApiInfo(
-        @Optional
         var name: String = "",
-        @Optional
         var description: String = "")
 
 @Serializable
 data class RequestGroup(
-        @Optional
         var name: String = "",
-        @Optional
         var description: String = "",
         @SerialName("item")
         var items: List<RequestItem>
@@ -34,35 +30,25 @@ data class RequestGroup(
 
 @Serializable
 data class RequestItem(
-        @Optional
         var name: String = "",
-        @Optional
         var request: Request = Request()
 )
 
 @Serializable
 data class Request(
         // val url: URLUnion? = null,
-        @Optional
         var url: String = "",
-        @Optional
         var method: String = "",
-        @Optional
         var description: String = "",
-        @Optional
         var body: String = "",
-        @Optional
         @SerialName("header")
-        var headers: List<RequestItemHeader> = listOf<RequestItemHeader>()
+        var headers: List<RequestItemHeader> = listOf()
 )
 
 @Serializable
 data class RequestItemHeader(
-        @Optional
         var key: String = "",
-        @Optional
         var value: String = "",
-        @Optional
         var description: String = ""
 )
 
