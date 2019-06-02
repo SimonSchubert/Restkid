@@ -1,6 +1,6 @@
 plugins {
-    id("kotlin-multiplatform") version "1.3.21"
-    id("kotlinx-serialization") version "1.3.21"
+    id("kotlin-multiplatform") version "1.3.31"
+    id("kotlinx-serialization") version "1.3.31"
 }
 
 repositories {
@@ -22,17 +22,16 @@ kotlin {
     }
     val libuiMain by sourceSets.getting {
         dependencies {
-            implementation("com.github.msink:libui:0.1.2")
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:0.10.0")
-            // implementation("io.ktor:ktor-http-native:1.1.2")
-            implementation("io.ktor:ktor-client-curl:1.1.3")
-            implementation("io.ktor:ktor-client-core-native:1.1.3")
+            implementation("com.github.msink:libui:0.1.3")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:0.11.0")
+            implementation("io.ktor:ktor-client-core-native:1.2.0")
+            implementation("io.ktor:ktor-client-curl:1.2.0")
         }
     }
 
     macosX64 {
         binaries.all {
-            linkerOpts = mutableListOf("-L/usr/local/opt/curl/lib", "-I/usr/local/opt/curl/include", "-lcurl")
+            linkerOpts = mutableListOf("-L/usr/local/opt/curl/lib", "-L/usr/local/opt/curl/include/curl", "-lcurl")
         }
     }
 }
