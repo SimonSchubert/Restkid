@@ -72,12 +72,12 @@ val client: HttpClient by lazy {
     HttpClient(Curl)
 }
 
-var box: VBox? = null
-var uiUrl: TextField? = null
-var uiMethod: Combobox? = null
-var uiHeaders: TextArea? = null
-var uiBody: TextArea? = null
-var uiResponse: TextArea? = null
+lateinit var box: VBox
+lateinit var uiUrl: TextField
+lateinit var uiMethod: Combobox
+lateinit var uiHeaders: TextArea
+lateinit var uiBody: TextArea
+lateinit var uiResponse: TextArea
 
 fun main() = appWindow(
         title = "Restkid",
@@ -116,7 +116,7 @@ fun main() = appWindow(
                     item("POST")
 
                     action {
-                        uiBody?.visible = value != 0
+                        uiBody.visible = value != 0
                     }
                 }
                 uiUrl = textfield {
@@ -154,18 +154,17 @@ private fun makeRequest() {
     memScoped {
         runBlocking {
             try {
-                val url = uiUrl?.value ?: ""
+                val url = uiUrl.value
 
                 val call = client.call(url) {
-                    method = if (uiMethod?.value == 0) {
+                    method = if (uiMethod.value == 0) {
                         HttpMethod.Get
                     } else {
                         HttpMethod.Post
                     }
-                    uiHeaders?.value?.lines()?.forEach {
+                    uiHeaders.value.lines().forEach {
                         val dividerIndex = it.indexOf(":")
                         if (dividerIndex != -1) {
-                            println("h: $it $dividerIndex")
                             headers.append(it.substring(0, dividerIndex), it.substring(dividerIndex))
                         }
                     }
@@ -177,7 +176,7 @@ private fun makeRequest() {
                 if (response.status == HttpStatusCode.OK) {
                 }
 
-                uiResponse?.value = response.readText()
+                uiResponse.value = response.readText()
 
                 response.close()
             } catch (e : Exception) {
@@ -206,9 +205,9 @@ private fun importCollection() {
                 println(obj.info.name)
 
                 for (g in obj.groups) {
-                    box?.label(g.name)
+                    box.label(g.name)
                     for (item in g.items) {
-                        box?.button(item.name) {
+                        box.button(item.name) {
                             action {
                                 fillRequestData(item.request.url, item.request.method, item.request.headers, item.request.body)
                             }
@@ -224,17 +223,17 @@ private fun importCollection() {
 
 private fun fillRequestData(url: String, method: String, headers: List<RequestItemHeader>, body: String) {
     println("url: $url")
-    uiUrl?.value = url
-    uiMethod?.value = if (method == "GET") {
-        uiBody?.hide()
+    uiUrl.value = url
+    uiMethod.value = if (method == "GET") {
+        uiBody.hide()
         0
     } else {
-        uiBody?.show()
+        uiBody.show()
         1
     }
-    uiHeaders?.value = ""
+    uiHeaders.value = ""
     for (header in headers) {
-        uiHeaders?.append(header.key + ": " + header.value + "\n")
+        uiHeaders.append(header.key + ": " + header.value + "\n")
     }
-    uiBody?.value = body
+    uiBody.value = body
 }
