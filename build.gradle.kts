@@ -24,8 +24,8 @@ kotlin {
         dependencies {
             implementation("com.github.msink:libui:0.1.3")
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:0.11.0")
-            implementation("io.ktor:ktor-client-core-native:1.2.0")
-            implementation("io.ktor:ktor-client-curl:1.2.0")
+            implementation("io.ktor:ktor-client-core-native:1.2.1")
+            implementation("io.ktor:ktor-client-curl:1.2.1")
         }
     }
 
