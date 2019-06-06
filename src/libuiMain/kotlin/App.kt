@@ -13,6 +13,7 @@ import io.ktor.content.TextContent
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.util.toMap
 import kotlinx.coroutines.*
 
 @Serializable
@@ -88,16 +89,15 @@ data class StateSave(
 
 lateinit var collection: Api
 
-val client: HttpClient by lazy {
-    HttpClient(Curl)
-}
-
 lateinit var box: VBox
 lateinit var uiUrl: TextField
 lateinit var uiMethod: Combobox
+lateinit var uiSend: Button
 lateinit var uiHeaders: TextArea
 lateinit var uiBody: TextArea
-lateinit var uiResponse: TextArea
+lateinit var uiBodyLabel: Label
+lateinit var uiResponseBody: TextArea
+lateinit var uiResponseHeader: TextArea
 var boxChildCount = 0
 
 fun main() = appWindow(
@@ -151,12 +151,10 @@ fun main() = appWindow(
             box = vbox {
             }
 
-
             if (collections.size > 0) {
                 collectionComboBox.value = 0
                 val path = getCollectionsPath()
                 importCollection("$path/${collections[0]}.json")
-                fillCollection()
             }
         }
 
@@ -171,37 +169,50 @@ fun main() = appWindow(
 
                     action {
                         uiBody.visible = value != 0
+                        uiBodyLabel.visible = value != 0
                     }
                 }
                 uiUrl = textfield {
                     stretchy = true
                 }
-                button("SEND") {
-
+                uiSend = button("SEND") {
                     action {
                         makeRequest()
                     }
                 }
             }
 
-            group("Data") { stretchy = true }.form {
+            group("Request") { stretchy = true }.form {
+                label("Headers")
                 uiHeaders = textarea {
-                    label = "Headers"
                     stretchy = true
                 }
+                uiBodyLabel = label("Body")
                 uiBody = textarea {
-                    label = "Body"
                     stretchy = true
                 }
             }
 
             group("Response") { stretchy = true }.form {
-                uiResponse = textarea {
+                tabpane {
                     stretchy = true
+                    page("Body") {
+                        uiResponseBody = textarea {
+                            stretchy = true
+                            readonly = true
+                        }
+                    }
+                    page("Headers") {
+                        uiResponseHeader = textarea {
+                            stretchy = true
+                            readonly = true
+                        }
+                    }
                 }
             }
         }
     }
+    fillCollection()
 }
 
 private fun showSaveDialog() {
@@ -237,41 +248,165 @@ private fun showSaveDialog() {
 }
 
 private fun showVariablesWindow() {
-    var variableBox: Box
+    if (collection.variables.isEmpty()) {
+        showVariableSetNameWindow()
+        return
+    }
+
+    lateinit var variableBox: Box
+    lateinit var comboBox: Combobox
+    var variablesChildCount = 0
     val textfields: MutableList<Pair<TextField, TextField>> = mutableListOf()
     appWindow("Variables", 100, 30) {
         vbox {
-            combobox {
-                collection.variables.forEach {
-                    item(it.name)
+            label("Selected set")
+            hbox {
+                stretchy = true
+                comboBox = combobox {
+                    stretchy = true
+                    collection.variables.forEach {
+                        item(it.name)
+                    }
+                    value = 0
+                    action {
+                        variablesChildCount = fillVariables(variableBox, textfields, variablesChildCount)
+                    }
                 }
-                item("New set")
-                action {
-                    // this.value == value
+                button("+") {
+                    action {
+                        showVariableSetNameWindow()
+                    }
+                }
+                button("-") {
+                    action {
+                        collection.variables.removeAt(comboBox.value)
+                        this@appWindow.hide()
+                        showVariablesWindow()
+                    }
                 }
             }
+            separator()
             hbox {
-                label("Key")
-                label("Value")
+                stretchy = true
+                label("Key") {
+                    stretchy = true
+                }
+                label("Value") {
+                    stretchy = true
+                }
             }
             variableBox = vbox {
 
             }
-            button("Add") {
+            button("Add variable") {
                 action {
                     variableBox.hbox {
-                        val key = textfield { }
-                        val value = textfield { }
-                        textfields.add(Pair(key, value))
+                        stretchy = true
+                        val key = textfield {
+                            stretchy = true
+                        }
+                        val value = textfield {
+                            stretchy = true
+                        }
+                        val pair = Pair(key, value)
+                        button("-") {
+                            action {
+                                textfields.remove(pair)
+                                this@hbox.hide()
+                            }
+                        }
+                        textfields.add(pair)
+                        variablesChildCount++
+                    }
+                }
+            }
+            variablesChildCount = comboBox.fillVariables(variableBox, textfields, variablesChildCount)
+        }
+        onClose {
+            val variables = textfields.map { Variable(it.first.value, it.second.value) }
+            collection.variables[comboBox.value].variables = variables
+            saveCollectionChanges()
+            true
+        }
+    }
+}
+
+fun Combobox.fillVariables(variableBox: Box, textfields: MutableList<Pair<TextField, TextField>>, variablesChildCount: Int): Int {
+    for (index in 0 until variablesChildCount) {
+        variableBox.delete(0)
+    }
+    textfields.clear()
+
+    var childCount = 0
+    collection.variables.getOrNull(value)?.variables?.forEach {
+        variableBox.hbox {
+            stretchy = true
+            val key = textfield {
+                value = it.key
+                stretchy = true
+            }
+            val value = textfield {
+                value = it.value
+                stretchy = true
+            }
+            val pair = Pair(key, value)
+            button("-") {
+                action {
+                    textfields.remove(pair)
+                    this@hbox.hide()
+                }
+            }
+            textfields.add(pair)
+            childCount++
+        }
+    }
+    return childCount
+}
+
+private fun showVariableSetNameWindow() {
+    appWindow("Create new set", 100, 30) {
+        vbox {
+            lateinit var textField: TextField
+            hbox {
+                label("Name:")
+                textField = textfield {
+                    stretchy = true
+                }
+            }
+            hbox {
+                button("Cancel") {
+                    this@appWindow.hide()
+                }
+                button("Save") {
+                    action {
+                        val name = textField.value
+                        if (collection.variables.any { it.name == name }) {
+
+                        } else {
+                            val variablesSet = VariableSet(name, listOf())
+                            collection.variables.add(variablesSet)
+
+                            this@appWindow.hide()
+                            showVariablesWindow()
+                        }
+                        this@appWindow.hide()
                     }
                 }
             }
         }
-        onClose {
-            val variables = textfields.map { Variable(it.first.value, it.second.value) }
-            val variablesSet = VariableSet("Test", variables)
-            collection.variables.add(variablesSet)
-            true
+    }
+}
+
+private fun showDeleteSetWindow() {
+    appWindow("Delete set", 100, 30) {
+        label("Are you sure?")
+        hbox {
+            button("No") {
+                this@appWindow.hide()
+            }
+            button("Yes") {
+                this@appWindow.hide()
+            }
         }
     }
 }
@@ -280,14 +415,21 @@ private fun makeRequest() {
     memScoped {
         runBlocking {
             try {
-                val url = uiUrl.value
+                var url = uiUrl.value
+                collection.variables.forEach {
+                    it.variables.forEach {
+                        url = url.replace("{{${it.key}}}", it.value)
+                    }
+                }
 
+                val client = HttpClient(Curl)
                 val call = client.call(url) {
                     method = if (uiMethod.value == 0) {
                         HttpMethod.Get
                     } else {
                         HttpMethod.Post
                     }
+
                     uiHeaders.value.lines().forEach {
                         val dividerIndex = it.indexOf(":")
                         if (dividerIndex != -1) {
@@ -295,10 +437,7 @@ private fun makeRequest() {
                             val value = it.substring(dividerIndex + 1).trim()
                             println("$key/$value")
                             if (key == "Content-Type") {
-                                println("BODY")
-
                                 body = TextContent(uiBody.value, contentType = ContentType.Application.Json)
-                                // contentType(ContentType.parse(value))
                             } else {
                                 headers.append(key, value)
                             }
@@ -308,13 +447,16 @@ private fun makeRequest() {
 
                 val response = call.response.receive<HttpResponse>()
 
-
                 if (response.status == HttpStatusCode.OK) {
                 }
 
-                uiResponse.value = response.readText()
+                uiResponseBody.value = response.readText()
+                uiResponseHeader.value = response.headers.toMap().toList().joinToString(separator = "\n") {
+                    it.first + " = " + it.second
+                }
 
                 response.close()
+
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -366,16 +508,19 @@ private fun fillCollection() {
     boxChildCount = 0
 
     println(collection.info.name)
-    for (g in collection.groups) {
-        box.label(g.name)
+    collection.groups.forEach { group ->
+        box.label(group.name)
         boxChildCount++
-        for (item in g.items) {
+        for (item in group.items) {
             box.button(item.name) {
                 action {
                     fillRequestData(item.request.url, item.request.method, item.request.headers, item.request.body)
                 }
             }
             boxChildCount++
+            if(boxChildCount == 2) {
+                fillRequestData(item.request.url, item.request.method, item.request.headers, item.request.body)
+            }
         }
     }
 }
