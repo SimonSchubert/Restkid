@@ -15,6 +15,7 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.util.toMap
 import kotlinx.coroutines.*
+import kotlin.system.getTimeMillis
 
 @Serializable
 data class Api(
@@ -96,10 +97,12 @@ lateinit var uiSend: Button
 lateinit var uiHeaders: TextArea
 lateinit var uiBody: TextArea
 lateinit var uiBodyLabel: Label
+lateinit var uiResponseStatus: Label
 lateinit var uiResponseBody: TextArea
 lateinit var uiResponseHeader: TextArea
 var boxChildCount = 0
 
+@ImplicitReflectionSerializer
 fun main() = appWindow(
         title = "Restkid",
         width = 620,
@@ -194,6 +197,7 @@ fun main() = appWindow(
             }
 
             group("Response") { stretchy = true }.form {
+                uiResponseStatus = label("")
                 tabpane {
                     stretchy = true
                     page("Body") {
@@ -411,16 +415,22 @@ private fun showDeleteSetWindow() {
     }
 }
 
+@ImplicitReflectionSerializer
 private fun makeRequest() {
     memScoped {
         runBlocking {
             try {
+                uiResponseBody.value = ""
+                uiResponseHeader.value = ""
+
                 var url = uiUrl.value
                 collection.variables.forEach {
                     it.variables.forEach {
                         url = url.replace("{{${it.key}}}", it.value)
                     }
                 }
+
+                val startTime = getTimeMillis()
 
                 val client = HttpClient(Curl)
                 val call = client.call(url) {
@@ -447,16 +457,28 @@ private fun makeRequest() {
 
                 val response = call.response.receive<HttpResponse>()
 
-                if (response.status == HttpStatusCode.OK) {
-                }
 
-                uiResponseBody.value = response.readText()
-                uiResponseHeader.value = response.headers.toMap().toList().joinToString(separator = "\n") {
-                    it.first + " = " + it.second
+                if (response.status == HttpStatusCode.OK) {
+
+                    val text = response.readText()
+                    try {
+                        val json = Json.nonstrict.parseJson(text)
+                        uiResponseBody.value = Json.indented.stringify(json)
+                    } catch (e: Exception) {
+                        uiResponseBody.value = text
+                    }
+
+                    val headers = response.headers.toMap().toList()
+                    uiResponseHeader.value = headers.joinToString(separator = "\n") {
+                        it.first + " = " + it.second
+                    }
+                    val size = (headers.firstOrNull { it.first == "Content-Length" }?.second?.get(0)?.toLong() ?: 0) / 1024f
+                    uiResponseStatus.text = "Status: ${response.status.value} ${response.status.description} / Time: ${getTimeMillis()-startTime} ms / Size: $size KB"
+                } else {
+                    uiResponseStatus.text = "Status: ${response.status.value} ${response.status.description} / Time: ${getTimeMillis()-startTime} ms"
                 }
 
                 response.close()
-
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -484,23 +506,33 @@ private fun importCollection(path: String) {
     }
 }
 
+@ImplicitReflectionSerializer
 private fun fillRequestData(url: String, method: String, headers: List<RequestItemHeader>, body: String) {
     println("url: $url")
     uiUrl.value = url
     uiMethod.value = if (method == "GET") {
         uiBody.hide()
+        uiBodyLabel.hide()
         0
     } else {
         uiBody.show()
+        uiBodyLabel.show()
         1
     }
     uiHeaders.value = ""
     for (header in headers) {
         uiHeaders.append(header.key + ": " + header.value + "\n")
     }
+    try {
+        val json = Json.nonstrict.parseJson(body)
+        uiBody.value = Json.indented.stringify(json)
+    } catch (e: Exception) {
+        uiBody.value = body
+    }
     uiBody.value = body
 }
 
+@ImplicitReflectionSerializer
 private fun fillCollection() {
     for (index in 0 until boxChildCount) {
         box.delete(0)
