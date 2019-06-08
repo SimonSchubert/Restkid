@@ -13,14 +13,14 @@ val os = org.gradle.internal.os.OperatingSystem.current()!!
 
 kotlin {
     when {
-        os.isWindows -> mingwX64("libui")
-        os.isMacOsX -> macosX64("libui")
-        os.isLinux -> linuxX64("libui")
+        os.isWindows -> mingwX64("desktop")
+        os.isMacOsX -> macosX64("desktop")
+        os.isLinux -> linuxX64("desktop")
         else -> throw Error("Unknown host")
     }.binaries.executable {
 
     }
-    val libuiMain by sourceSets.getting {
+    val desktopMain by sourceSets.getting {
         dependencies {
             implementation("com.github.msink:libui:0.1.3")
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:0.11.0")
