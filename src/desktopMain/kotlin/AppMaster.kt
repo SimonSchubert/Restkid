@@ -27,23 +27,25 @@ class AppMaster(private val callback: Callback) {
     lateinit var collection: Api
 
     fun start() {
-        val collections = getSavedCollections()
-        callback.showMainApp(collections, { u, m, b, h ->
-            makeRequest(u, m, b, h)
-        }, { index ->
-            val path = getCollectionsPath()
-            loadCollection("$path/${collections[index]}.json")
-        }, { path ->
-            loadCollection(path)
-        }, {
-            showVariablesWindow()
-        }, {
-            if (collections.size > 0) {
-                collectionComboBox.value = 0
+        memScoped {
+            val collections = getSavedCollections()
+            callback.showMainApp(collections, { u, m, b, h ->
+                makeRequest(u, m, b, h)
+            }, { index ->
                 val path = getCollectionsPath()
-                loadCollection("$path/${collections[0]}.json")
-            }
-        })
+                loadCollection("$path/${collections[index]}.json")
+            }, { path ->
+                loadCollection(path)
+            }, {
+                showVariablesWindow()
+            }, {
+                if (collections.size > 0) {
+                    collectionComboBox.value = 0
+                    val path = getCollectionsPath()
+                    loadCollection("$path/${collections[0]}.json")
+                }
+            })
+        }
     }
 
     interface Callback {
@@ -57,8 +59,8 @@ class AppMaster(private val callback: Callback) {
     }
 
     private fun makeRequest(u: String, m: HttpMethod, b: String, h: Map<String, String>) {
-        var url = u
         memScoped {
+            var url = u
             runBlocking {
                 try {
                     collection.variables.forEach {
@@ -117,10 +119,10 @@ class AppMaster(private val callback: Callback) {
     }
 
     private fun loadCollection(path: String) {
-        val file = fopen(path, "r")
-        try {
-            var content = ""
-            memScoped {
+        memScoped {
+            val file = fopen(path, "r")
+            try {
+                var content = ""
                 val bufferLength = 64 * 1024
                 val buffer = allocArray<ByteVar>(bufferLength)
                 while (true) {
@@ -130,83 +132,96 @@ class AppMaster(private val callback: Callback) {
                 }
 
                 collection = Json.nonstrict.parse(Api.serializer(), content)
+
                 callback.showCollection(collection) {
                     callback.showRequest(it.request.url, it.request.method, it.request.headers, it.request.body)
                 }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                fclose(file)
             }
-        } finally {
-            fclose(file)
         }
     }
 
     private fun saveCollection() {
-        val path = getCollectionsPath()
-        mkdir(path, S_IRWXU)
+        memScoped {
+            val path = getCollectionsPath()
+            mkdir(path, S_IRWXU)
 
-        val name = collection.info.name
-        val fileName = "$path/$name.json"
-        val file = fopen(fileName, "wt")
-        if (file == null) throw Error("Cannot write file '$fileName'")
-        try {
-            val json = Json.stringify(Api.serializer(), collection)
-            fputs(json, file)
-        } finally {
-            fclose(file)
+            val name = collection.info.name
+            val fileName = "$path/$name.json"
+            val file = fopen(fileName, "wt")
+            if (file == null) throw Error("Cannot write file '$fileName'")
+            try {
+                val json = Json.stringify(Api.serializer(), collection)
+                fputs(json, file)
+            } finally {
+                fclose(file)
+            }
         }
     }
 
     private fun showVariablesWindow() {
-        if (collection.variables.isEmpty()) {
-            showNewVariableSetWindow()
-            return
+        memScoped {
+            if (collection.variables.isEmpty()) {
+                showNewVariableSetWindow()
+                return
+            }
+            callback.showVariablesWindow(collection, {
+                saveCollection()
+            }, {
+                collection.variables.removeAt(it)
+                showVariablesWindow()
+            }, {
+                showNewVariableSetWindow()
+            })
         }
-        callback.showVariablesWindow(collection, {
-            saveCollection()
-        }, {
-            collection.variables.removeAt(it)
-            showVariablesWindow()
-        }, {
-            showNewVariableSetWindow()
-        })
     }
 
     private fun showNewVariableSetWindow() {
-        callback.showNewVariableSetWindow(collection) { name ->
-            if (collection.variables.any { it.name == name }) {
+        memScoped {
+            callback.showNewVariableSetWindow(collection) { name ->
+                if (collection.variables.any { it.name == name }) {
 
-            } else {
-                val variablesSet = VariableSet(name, listOf())
-                collection.variables.add(variablesSet)
+                } else {
+                    val variablesSet = VariableSet(name, listOf())
+                    collection.variables.add(variablesSet)
+                }
             }
         }
     }
 
     private fun getStorageDir(): String {
-        val home = getenv("HOME")?.toKString() ?: ""
-        return "$home/Restkid/"
+        memScoped {
+            val home = getenv("HOME")?.toKString() ?: ""
+            return "$home/Restkid/"
+        }
     }
 
     private fun getCollectionsPath(): String {
-        return "${getStorageDir()}collections/"
+        return memScoped { "${getStorageDir()}collections/" }
     }
 
     private fun getSavedCollections(): MutableList<String> {
-        val fileNames = mutableListOf<String>()
+        memScoped {
+            val fileNames = mutableListOf<String>()
 
-        val path = getCollectionsPath()
-        val dir = opendir(path) ?: return fileNames
+            val path = getCollectionsPath()
+            val dir = opendir(path) ?: return fileNames
 
-        while (true) {
-            val result = readdir(dir) ?: break
-            val name = result.pointed.d_name.toKString()
-            if (!isDir(name) && name.endsWith(".json")) {
-                fileNames.add(name.substring(0, name.length - 5))
+            while (true) {
+                val result = readdir(dir) ?: break
+                val name = result.pointed.d_name.toKString()
+                if (!isDir(name) && name.endsWith(".json")) {
+                    fileNames.add(name.substring(0, name.length - 5))
+                }
             }
+
+            closedir(dir)
+
+            return fileNames
         }
-
-        closedir(dir)
-
-        return fileNames
     }
 
     private fun isDir(path: String): Boolean {
