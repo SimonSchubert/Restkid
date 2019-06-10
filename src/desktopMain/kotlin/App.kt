@@ -21,18 +21,24 @@ lateinit var uiResponseBody: TextArea
 lateinit var uiResponseHeader: TextArea
 lateinit var collectionComboBox: Combobox
 var boxChildCount = 0
+var hasUnsavedChange = false
 
 @ImplicitReflectionSerializer
 var callback = object : AppMaster.Callback {
-    override fun showMainApp(collections: List<String>, request: (u: String, m: HttpMethod, b: String, h: Map<String, String>) -> Unit, loadByIndex: (Int) -> Unit, loadByPath: (String) -> Unit, showVariables: () -> Unit, onLoaded: () -> Unit) {
+    override fun showMainApp(collections: List<String>, request: (u: String, m: HttpMethod, b: String, h: Map<String, String>) -> Unit, loadByIndex: (Int) -> Unit, loadByPath: (String) -> Unit, showVariables: () -> Unit, onLoaded: () -> Unit, onClose: () -> Unit) {
         appWindow(
                 title = "Restkid",
                 width = 620,
                 height = 300
         ) {
             onClose {
-                // showSaveDialog()
-                false
+                if (hasUnsavedChange) {
+                    onClose()
+                    false
+                } else {
+                    exit(0)
+                    true
+                }
             }
             hbox {
                 vbox {
@@ -113,14 +119,20 @@ var callback = object : AppMaster.Callback {
                         }
                     }
 
-                    group("models.Request") { stretchy = true }.form {
+                    group("Request") { stretchy = true }.form {
                         label("Headers")
                         uiHeaders = textarea {
                             stretchy = true
+                            action {
+                                hasUnsavedChange = true
+                            }
                         }
                         uiBodyLabel = label("Body")
                         uiBody = textarea {
                             stretchy = true
+                            action {
+                                hasUnsavedChange = true
+                            }
                         }
                     }
 
@@ -167,7 +179,7 @@ var callback = object : AppMaster.Callback {
                 }
                 boxChildCount++
                 if (boxChildCount == 2) {
-                    // fillRequestData(item.request.url, item.request.method, item.request.headers, item.request.body)
+                    click(item)
                 }
             }
             if (boxChildCount > 10) {
@@ -263,7 +275,7 @@ var callback = object : AppMaster.Callback {
         }
     }
 
-    override fun showVariablesWindow(collection: Api, save: (Api) -> Unit, remove: (Int) -> Unit, new: () -> Unit) {
+    override fun showVariablesWindow(collection: Api, save: () -> Unit, remove: (Int) -> Unit, new: () -> Unit) {
         lateinit var variableBox: Box
         lateinit var comboBox: Combobox
         var variablesChildCount = 0
@@ -334,7 +346,7 @@ var callback = object : AppMaster.Callback {
             onClose {
                 val variables = textfields.map { Variable(it.first.value, it.second.value) }
                 collection.variables[comboBox.value].variables = variables
-                save(collection)
+                save()
                 true
             }
         }

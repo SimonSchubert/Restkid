@@ -44,6 +44,10 @@ class AppMaster(private val callback: Callback) {
                     val path = getCollectionsPath()
                     loadCollection("$path/${collections[0]}.json")
                 }
+            }, {
+                callback.showSaveDialog {
+                    saveCollection()
+                }
             })
         }
     }
@@ -52,10 +56,10 @@ class AppMaster(private val callback: Callback) {
         fun showResponse(body: String, headers: String, stats: String)
         fun showCollection(collection: Api, click: (RequestItem) -> Unit)
         fun showRequest(url: String, method: String, headers: List<RequestItemHeader>, body: String)
-        fun showVariablesWindow(collection: Api, save: (Api) -> Unit, remove: (Int) -> Unit, new: () -> Unit)
+        fun showVariablesWindow(collection: Api, save: () -> Unit, remove: (Int) -> Unit, new: () -> Unit)
         fun showNewVariableSetWindow(collection: Api, save: (String) -> Unit)
         fun showSaveDialog(save: () -> Unit)
-        fun showMainApp(collections: List<String>, request: (u: String, m: HttpMethod, b: String, h: Map<String, String>) -> Unit, loadByIndex: (Int) -> Unit, loadByPath: (String) -> Unit, showVariables: () -> Unit, onLoaded: () -> Unit)
+        fun showMainApp(collections: List<String>, request: (u: String, m: HttpMethod, b: String, h: Map<String, String>) -> Unit, loadByIndex: (Int) -> Unit, loadByPath: (String) -> Unit, showVariables: () -> Unit, onLoaded: () -> Unit, onClose: () -> Unit)
     }
 
     private fun makeRequest(u: String, m: HttpMethod, b: String, h: Map<String, String>) {
