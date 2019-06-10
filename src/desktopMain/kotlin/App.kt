@@ -1,79 +1,13 @@
-import libui.ktx.*
-import kotlinx.cinterop.*
-import platform.posix.*
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
 import io.ktor.http.HttpMethod
-
-@Serializable
-data class Api(
-        var info: ApiInfo,
-        @SerialName("item")
-        var groups: List<RequestGroup>,
-        var variables: MutableList<VariableSet> = mutableListOf())
-
-@Serializable
-data class ApiInfo(
-        var name: String = "",
-        var description: String = "")
-
-@Serializable
-data class RequestGroup(
-        var name: String = "",
-        var description: String = "",
-        @SerialName("item")
-        var items: List<RequestItem>
-)
-
-@Serializable
-data class RequestItem(
-        var name: String = "",
-        var request: Request = Request()
-)
-
-@Serializable
-data class VariableSet(
-        var name: String = "",
-        var variables: List<Variable> = listOf()
-)
-
-@Serializable
-data class Variable(
-        var key: String = "",
-        var value: String = ""
-)
-
-@Serializable
-data class Request(
-        // val url: URLUnion? = null,
-        var url: String = "",
-        var method: String = "",
-        var description: String = "",
-        var body: String = "",
-        @SerialName("header")
-        var headers: List<RequestItemHeader> = listOf()
-)
-
-@Serializable
-data class RequestItemHeader(
-        var key: String = "",
-        var value: String = "",
-        var description: String = ""
-)
-
-sealed class URLUnion {
-    class StringValue(val u: String) : URLUnion()
-    class URLClassValue(val u: URLClass) : URLUnion()
-}
-
-data class URLClass(
-        val raw: String? = null
-)
-
-@Serializable
-data class StateSave(
-        var selection: Int = 0
-)
+import kotlinx.serialization.ImplicitReflectionSerializer
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.stringify
+import libui.ktx.*
+import models.Api
+import models.RequestItem
+import models.RequestItemHeader
+import models.Variable
+import platform.posix.exit
 
 lateinit var box: VBox
 lateinit var uiUrl: TextField
@@ -90,7 +24,7 @@ var boxChildCount = 0
 
 @ImplicitReflectionSerializer
 var callback = object : AppMaster.Callback {
-    override fun showMainApp(collections: List<String>, request: (u: String, m: HttpMethod, b: String, h: Map<String, String>) -> Unit, loadByIndex: (Int) -> Unit, loadByPath: (String) -> Unit, showVariables: () -> Unit) {
+    override fun showMainApp(collections: List<String>, request: (u: String, m: HttpMethod, b: String, h: Map<String, String>) -> Unit, loadByIndex: (Int) -> Unit, loadByPath: (String) -> Unit, showVariables: () -> Unit, onLoaded: () -> Unit) {
         appWindow(
                 title = "Restkid",
                 width = 620,
@@ -179,7 +113,7 @@ var callback = object : AppMaster.Callback {
                         }
                     }
 
-                    group("Request") { stretchy = true }.form {
+                    group("models.Request") { stretchy = true }.form {
                         label("Headers")
                         uiHeaders = textarea {
                             stretchy = true
@@ -210,6 +144,8 @@ var callback = object : AppMaster.Callback {
                     }
                 }
             }
+
+            onLoaded()
         }
     }
 

@@ -14,6 +14,10 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.stringify
+import models.Api
+import models.RequestItem
+import models.RequestItemHeader
+import models.VariableSet
 import platform.posix.*
 import kotlin.system.getTimeMillis
 
@@ -33,12 +37,13 @@ class AppMaster(private val callback: Callback) {
             loadCollection(path)
         }, {
             showVariablesWindow()
+        }, {
+            if (collections.size > 0) {
+                collectionComboBox.value = 0
+                val path = getCollectionsPath()
+                loadCollection("$path/${collections[0]}.json")
+            }
         })
-        if (collections.size > 0) {
-            collectionComboBox.value = 0
-            val path = getCollectionsPath()
-            loadCollection("$path/${collections[0]}.json")
-        }
     }
 
     interface Callback {
@@ -48,7 +53,7 @@ class AppMaster(private val callback: Callback) {
         fun showVariablesWindow(collection: Api, save: (Api) -> Unit, remove: (Int) -> Unit, new: () -> Unit)
         fun showNewVariableSetWindow(collection: Api, save: (String) -> Unit)
         fun showSaveDialog(save: () -> Unit)
-        fun showMainApp(collections: List<String>, request: (u: String, m: HttpMethod, b: String, h: Map<String, String>) -> Unit, loadByIndex: (Int) -> Unit, loadByPath: (String) -> Unit, showVariables: () -> Unit)
+        fun showMainApp(collections: List<String>, request: (u: String, m: HttpMethod, b: String, h: Map<String, String>) -> Unit, loadByIndex: (Int) -> Unit, loadByPath: (String) -> Unit, showVariables: () -> Unit, onLoaded: () -> Unit)
     }
 
     private fun makeRequest(u: String, m: HttpMethod, b: String, h: Map<String, String>) {
