@@ -1,8 +1,43 @@
 # Restkid
 
-REST API test tool written in kotlin/native
+Lightweight API testing tool
 
-### License
+## Screenshot
+
+
+<img src="https://raw.githubusercontent.com/SimonSchubert/Restkid/master/art/macos_screen_01.png" width="700">
+
+## Why
+
+As a mobile developer I work with private and public apis on a daily base. Postman for example is a great tool but it is build with Electron(comes with a Xbox gamepad driver) and takes ~9 seconds on my Laptop for a cold start. I'm a big fan of performant and open source software but none of the tools I tested could fullfill that requirement. And because I use the tool everyday and I love writting Kotlin I thought it might be a good opportunity to start building my own tool for my own suites.
+
+## Todo v1.0
+
+- Import collections from other tools like Postman and Pawn
+- Edit/Add collections within the app
+- Bundle .kexe to exe/application/sh
+- App Icon
+- App menu in statusbar
+  - About
+  - Settings
+  - Check for update
+  - ...
+
+#### Blocked by upstream
+- ScrollView for request buttons on the left side
+- TreeView to display an interactive Json response (+ and - buttons)
+
+## Todo v1.x
+
+- Export request to code for most common frameworks (e.g. ktor,retrofit,curl)
+- Export json response to classes for most common languages (e.g. POJO)
+
+#### Blocked by upstream
+- Modular alert windows with action buttons
+- Buttons with icons
+- Copy and paste for TextView and TextArea with standard shortcuts
+
+## License
 
 > Licensed under the Apache License, Version 2.0 (the "License"); you
 > may not use this file except in compliance with the License. You may
