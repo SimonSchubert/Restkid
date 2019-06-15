@@ -1,6 +1,9 @@
+import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
+
 plugins {
     id("kotlin-multiplatform") version "1.3.31"
     id("kotlinx-serialization") version "1.3.31"
+    id("com.github.ben-manes.versions") version "0.21.0"
 }
 
 repositories {
@@ -34,4 +37,21 @@ kotlin {
             linkerOpts = mutableListOf("-L/usr/local/opt/curl/lib", "-L/usr/local/opt/curl/include/curl", "-lcurl")
         }
     }
+}
+
+tasks.named<DependencyUpdatesTask>("dependencyUpdates") {
+    resolutionStrategy {
+        componentSelection {
+            all {
+                val rejected = listOf("eap", "alpha", "beta", "rc", "cr", "m", "preview")
+                        .map { qualifier -> Regex("(?i).*[.-]$qualifier[.\\d-]*") }
+                        .any { it.matches(candidate.version) }
+                if (rejected) {
+                    reject("Release candidate")
+                }
+            }
+        }
+    }
+    // optional parameters
+    checkForGradleUpdate = true
 }
