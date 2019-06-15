@@ -16,25 +16,25 @@ As a mobile developer I work with private and public apis on a daily base. Postm
 
 ## Todo v1.0
 
-* Import collections from other tools like Postman and Pawn
-* Edit/Add collections within the app
-* Bundle .kexe to exe/application/sh
-* App Icon
-* App menu in statusbar
-  * About
-  * Settings
-  * Check for update
-  * ...
-* [blocked] ScrollView for request buttons on the left side
-* [blocked] TreeView to display an interactive Json response (+ and - buttons)
+*   Import collections from other tools like Postman and Pawn
+*   Edit/Add collections within the app
+*   Bundle .kexe to exe/application/sh
+*   App Icon
+*   App menu in statusbar
+  *   About
+  *   Settings
+  *   Check for update
+  *   ...
+*   (blocked) ScrollView for request buttons on the left side
+*   (blocked) TreeView to display an interactive Json response (+ and - buttons)
 
 ## Todo v1.x
 
-* Export request to code for most common frameworks (e.g. ktor,retrofit,curl)
-* Export json response to classes for most common languages (e.g. POJO)
-* [blocked] Modular alert windows with action buttons
-* [blocked] Buttons with icons
-* [blocked] Copy and paste for TextView and TextArea with standard shortcuts
+*   Export request to code for most common frameworks (e.g. ktor,retrofit,curl)
+*   Export json response to classes for most common languages (e.g. POJO)
+*   (blocked) Modular alert windows with action buttons
+*   (blocked) Buttons with icons
+*   (blocked) Copy and paste for TextView and TextArea with standard shortcuts
 
 ## License
 
