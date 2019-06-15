@@ -28,7 +28,7 @@ var isEditMode = false
 @ImplicitReflectionSerializer
 var callback = object : AppMaster.Callback {
 
-    override fun showMainApp(collections: List<String>, request: (u: String, m: HttpMethod, b: String, h: Map<String, String>) -> Unit, loadByIndex: (Int) -> Unit, loadByPath: (String) -> Unit, showVariables: () -> Unit, onLoaded: () -> Unit, onClose: () -> Unit, onSave: () -> Unit) {
+    override fun onShowMainApp(collections: List<String>, request: (u: String, m: HttpMethod, b: String, h: Map<String, String>) -> Unit, loadByIndex: (Int) -> Unit, loadByPath: (String) -> Unit, showVariables: () -> Unit, onLoaded: () -> Unit, onClose: () -> Unit, onSave: () -> Unit) {
         appWindow(
                 title = "Restkid",
                 width = 620,
@@ -182,7 +182,7 @@ var callback = object : AppMaster.Callback {
         }
     }
 
-    override fun showCollection(collection: Api, click: (RequestItem) -> Unit, rename: (String, RequestGroup?, RequestItem?) -> Unit) {
+    override fun onShowCollection(collection: Api, click: (RequestItem) -> Unit, rename: (String, RequestGroup?, RequestItem?) -> Unit) {
         for (index in 0 until boxChildCount) {
             box.delete(0)
         }
@@ -238,7 +238,7 @@ var callback = object : AppMaster.Callback {
         }
     }
 
-    override fun showRequest(url: String, method: String, headers: List<RequestItemHeader>, body: String) {
+    override fun onShowRequest(url: String, method: String, headers: List<RequestItemHeader>, body: String) {
         println("url: $url")
         uiUrl.value = url
         uiMethod.value = if (method == "GET") {
@@ -265,13 +265,13 @@ var callback = object : AppMaster.Callback {
         uiResponseHeader.value = ""
     }
 
-    override fun showResponse(body: String, headers: String, stats: String) {
+    override fun onShowResponse(body: String, headers: String, stats: String) {
         uiResponseBody.value = body
         uiResponseHeader.value = headers
         uiResponseStatus.text = stats
     }
 
-    override fun showSaveDialog(save: () -> Unit) {
+    override fun onShowSaveDialog(save: () -> Unit) {
         appWindow("Close", 100, 30) {
             vbox {
                 label("Do you want to save the changes?")
@@ -297,7 +297,7 @@ var callback = object : AppMaster.Callback {
         }
     }
 
-    override fun showNewVariableSetWindow(collection: Api, save: (String) -> Unit) {
+    override fun onShowNewVariableSetWindow(collection: Api, save: (String) -> Unit) {
         appWindow("Create new set", 100, 30) {
             vbox {
                 lateinit var textField: TextField
@@ -323,7 +323,7 @@ var callback = object : AppMaster.Callback {
         }
     }
 
-    override fun showNameDialog(current: String, save: (String) -> Unit) {
+    override fun onShowNameDialog(current: String, save: (String) -> Unit) {
         appWindow("Rename", 100, 30) {
             vbox {
                 val uiText = textfield {
@@ -350,7 +350,7 @@ var callback = object : AppMaster.Callback {
         }
     }
 
-    override fun showVariablesWindow(collection: Api, save: () -> Unit, remove: (Int) -> Unit, new: () -> Unit) {
+    override fun onShowVariablesWindow(collection: Api, save: () -> Unit, remove: (Int) -> Unit, new: () -> Unit) {
         lateinit var variableBox: Box
         lateinit var comboBox: Combobox
         var variablesChildCount = 0

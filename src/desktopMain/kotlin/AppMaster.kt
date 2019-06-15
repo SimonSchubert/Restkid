@@ -18,6 +18,9 @@ import models.*
 import platform.posix.*
 import kotlin.system.getTimeMillis
 
+/**
+ * This class handles all the logic separated from ui
+ */
 @ImplicitReflectionSerializer
 class AppMaster(private val callback: Callback) {
 
@@ -26,7 +29,7 @@ class AppMaster(private val callback: Callback) {
     fun start() {
         memScoped {
             val collections = getSavedCollections()
-            callback.showMainApp(collections, { u, m, b, h ->
+            callback.onShowMainApp(collections, { u, m, b, h ->
                 makeRequest(u, m, b, h)
             }, { index ->
                 val path = getCollectionsPath()
@@ -45,7 +48,7 @@ class AppMaster(private val callback: Callback) {
                     showCollection()
                 }
             }, {
-                callback.showSaveDialog {
+                callback.onShowSaveDialog {
                     saveCollection()
                 }
             }, {
@@ -55,14 +58,45 @@ class AppMaster(private val callback: Callback) {
     }
 
     interface Callback {
-        fun showResponse(body: String, headers: String, stats: String)
-        fun showCollection(collection: Api, click: (RequestItem) -> Unit, rename: (String, RequestGroup?, RequestItem?) -> Unit)
-        fun showRequest(url: String, method: String, headers: List<RequestItemHeader>, body: String)
-        fun showVariablesWindow(collection: Api, save: () -> Unit, remove: (Int) -> Unit, new: () -> Unit)
-        fun showNewVariableSetWindow(collection: Api, save: (String) -> Unit)
-        fun showSaveDialog(save: () -> Unit)
-        fun showMainApp(collections: List<String>, request: (u: String, m: HttpMethod, b: String, h: Map<String, String>) -> Unit, loadByIndex: (Int) -> Unit, loadByPath: (String) -> Unit, showVariables: () -> Unit, onLoaded: () -> Unit, onClose: () -> Unit, onSave: () -> Unit)
-        fun showNameDialog(current: String, save: (String) -> Unit)
+        /**
+         * Show response data
+         */
+        fun onShowResponse(body: String, headers: String, stats: String)
+
+        /**
+         * Show request groups and items
+         */
+        fun onShowCollection(collection: Api, click: (RequestItem) -> Unit, rename: (String, RequestGroup?, RequestItem?) -> Unit)
+
+        /**
+         * Show request data
+         */
+        fun onShowRequest(url: String, method: String, headers: List<RequestItemHeader>, body: String)
+
+        /**
+         * Show ui to select and edit variables
+         */
+        fun onShowVariablesWindow(collection: Api, save: () -> Unit, remove: (Int) -> Unit, new: () -> Unit)
+
+        /**
+         * Show ui to enter new set name
+         */
+        fun onShowNewVariableSetWindow(collection: Api, save: (String) -> Unit)
+
+        /**
+         * Show ui to ask to save changes before closing app
+         */
+        fun onShowSaveDialog(save: () -> Unit)
+
+        /**
+         * Show main ui with collection selector
+         */
+        fun onShowMainApp(collections: List<String>, request: (u: String, m: HttpMethod, b: String, h: Map<String, String>) -> Unit, loadByIndex: (Int) -> Unit, loadByPath: (String) -> Unit, showVariables: () -> Unit, onLoaded: () -> Unit, onClose: () -> Unit, onSave: () -> Unit)
+
+        /**
+         * Show ui to enter name
+         */
+        fun onShowNameDialog(current: String, save: (String) -> Unit)
     }
 
     private fun makeRequest(u: String, m: HttpMethod, b: String, h: Map<String, String>) {
@@ -110,11 +144,11 @@ class AppMaster(private val callback: Callback) {
                                 ?: 0) / 1024f
                         val stats = "Status: ${response.status.value} ${response.status.description} / Time: ${getTimeMillis() - startTime} ms / Size: $contentSize KB"
 
-                        callback.showResponse(body, headers, stats)
+                        callback.onShowResponse(body, headers, stats)
                     } else {
                         val stats = "Status: ${response.status.value} ${response.status.description} / Time: ${getTimeMillis() - startTime} ms"
 
-                        callback.showResponse("", "", stats)
+                        callback.onShowResponse("", "", stats)
                     }
 
                     response.close()
@@ -149,10 +183,10 @@ class AppMaster(private val callback: Callback) {
 
     private fun showCollection() {
         memScoped {
-            callback.showCollection(collection, {
-                callback.showRequest(it.request.url, it.request.method, it.request.headers, it.request.body)
+            callback.onShowCollection(collection, {
+                callback.onShowRequest(it.request.url, it.request.method, it.request.headers, it.request.body)
             }, { current: String, requestGroup: RequestGroup?, requestItem: RequestItem? ->
-                callback.showNameDialog(current) {
+                callback.onShowNameDialog(current) {
                     requestGroup?.name = it
                     requestItem?.name = it
                     showCollection()
@@ -185,7 +219,7 @@ class AppMaster(private val callback: Callback) {
                 showNewVariableSetWindow()
                 return
             }
-            callback.showVariablesWindow(collection, {
+            callback.onShowVariablesWindow(collection, {
                 saveCollection()
             }, {
                 collection.variables.removeAt(it)
@@ -198,7 +232,7 @@ class AppMaster(private val callback: Callback) {
 
     private fun showNewVariableSetWindow() {
         memScoped {
-            callback.showNewVariableSetWindow(collection) { name ->
+            callback.onShowNewVariableSetWindow(collection) { name ->
                 if (collection.variables.any { it.name == name }) {
 
                 } else {

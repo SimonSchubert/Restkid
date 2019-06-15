@@ -3,6 +3,9 @@ package models
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * Request data class
+ */
 @Serializable
 data class Request(
         // val url: URLUnion? = null,

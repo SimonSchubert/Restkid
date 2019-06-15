@@ -3,6 +3,9 @@ package models
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * Request group class
+ */
 @Serializable
 data class RequestGroup(
         var name: String = "",
