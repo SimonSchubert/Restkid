@@ -11,5 +11,5 @@ data class Request(
         var description: String = "",
         var body: String = "",
         @SerialName("header")
-        var headers: List<RequestItemHeader> = listOf()
+        var headers: MutableList<RequestItemHeader> = mutableListOf()
 )

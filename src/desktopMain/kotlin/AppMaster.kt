@@ -40,7 +40,7 @@ class AppMaster(private val callback: Callback) {
                 showVariablesWindow()
             }, {
                 if (collections.size > 0) {
-                    collectionComboBox.value = 0
+                    uiCollection.value = 0
                     val path = getCollectionsPath()
                     loadCollection("$path/${collections[0]}.json")
                 }
@@ -48,6 +48,8 @@ class AppMaster(private val callback: Callback) {
                 callback.showSaveDialog {
                     saveCollection()
                 }
+            }, {
+                saveCollection()
             })
         }
     }
@@ -59,7 +61,7 @@ class AppMaster(private val callback: Callback) {
         fun showVariablesWindow(collection: Api, save: () -> Unit, remove: (Int) -> Unit, new: () -> Unit)
         fun showNewVariableSetWindow(collection: Api, save: (String) -> Unit)
         fun showSaveDialog(save: () -> Unit)
-        fun showMainApp(collections: List<String>, request: (u: String, m: HttpMethod, b: String, h: Map<String, String>) -> Unit, loadByIndex: (Int) -> Unit, loadByPath: (String) -> Unit, showVariables: () -> Unit, onLoaded: () -> Unit, onClose: () -> Unit)
+        fun showMainApp(collections: List<String>, request: (u: String, m: HttpMethod, b: String, h: Map<String, String>) -> Unit, loadByIndex: (Int) -> Unit, loadByPath: (String) -> Unit, showVariables: () -> Unit, onLoaded: () -> Unit, onClose: () -> Unit, onSave: () -> Unit)
     }
 
     private fun makeRequest(u: String, m: HttpMethod, b: String, h: Map<String, String>) {
@@ -148,7 +150,7 @@ class AppMaster(private val callback: Callback) {
         }
     }
 
-    private fun saveCollection() {
+    internal fun saveCollection() {
         memScoped {
             val path = getCollectionsPath()
             mkdir(path, S_IRWXU)

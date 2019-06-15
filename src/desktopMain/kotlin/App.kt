@@ -13,19 +13,24 @@ lateinit var box: VBox
 lateinit var uiUrl: TextField
 lateinit var uiMethod: Combobox
 lateinit var uiSend: Button
+lateinit var uiImport: Button
+lateinit var uiVariables: Button
+lateinit var uiEdit: Button
 lateinit var uiHeaders: TextArea
 lateinit var uiBody: TextArea
 lateinit var uiBodyLabel: Label
 lateinit var uiResponseStatus: Label
 lateinit var uiResponseBody: TextArea
 lateinit var uiResponseHeader: TextArea
-lateinit var collectionComboBox: Combobox
+lateinit var uiCollection: Combobox
+lateinit var uiCancel: Button
 var boxChildCount = 0
 var hasUnsavedChange = false
+var isEditMode = false
 
 @ImplicitReflectionSerializer
 var callback = object : AppMaster.Callback {
-    override fun showMainApp(collections: List<String>, request: (u: String, m: HttpMethod, b: String, h: Map<String, String>) -> Unit, loadByIndex: (Int) -> Unit, loadByPath: (String) -> Unit, showVariables: () -> Unit, onLoaded: () -> Unit, onClose: () -> Unit) {
+    override fun showMainApp(collections: List<String>, request: (u: String, m: HttpMethod, b: String, h: Map<String, String>) -> Unit, loadByIndex: (Int) -> Unit, loadByPath: (String) -> Unit, showVariables: () -> Unit, onLoaded: () -> Unit, onClose: () -> Unit, onSave: () -> Unit) {
         appWindow(
                 title = "Restkid",
                 width = 620,
@@ -43,7 +48,7 @@ var callback = object : AppMaster.Callback {
             hbox {
                 vbox {
                     hbox {
-                        button("Import") {
+                        uiImport = button("Import") {
                             action {
                                 val importPath = OpenFileDialog() ?: ""
                                 if (importPath.isNotEmpty()) {
@@ -51,18 +56,33 @@ var callback = object : AppMaster.Callback {
                                 }
                             }
                         }
-                        button("Variables") {
+                        uiVariables = button("Variables") {
                             action {
                                 showVariables()
                             }
                         }
-                        button("Add/Edit") {
+                        uiEdit = button("Edit") {
+                            action {
+                                if (isEditMode) {
+                                    onSave()
+                                }
+
+                                toggleEditMode()
+                                onLoaded()
+                            }
+                        }
+                        uiCancel = button("Cancel") {
+                            action {
+                                toggleEditMode()
+                                onLoaded()
+                            }
+                            visible = false
                         }
                     }
 
                     separator()
 
-                    collectionComboBox = combobox {
+                    uiCollection = combobox {
                         collections.forEach {
                             item(it)
                         }
@@ -90,10 +110,14 @@ var callback = object : AppMaster.Callback {
                             action {
                                 uiBody.visible = value != 0
                                 uiBodyLabel.visible = value != 0
+                                hasUnsavedChange = true
                             }
                         }
                         uiUrl = textfield {
                             stretchy = true
+                            action {
+                                hasUnsavedChange = true
+                            }
                         }
                         uiSend = button("SEND") {
                             action {
@@ -156,8 +180,27 @@ var callback = object : AppMaster.Callback {
                     }
                 }
             }
-
             onLoaded()
+        }
+    }
+
+    private fun toggleEditMode() {
+        isEditMode = !isEditMode
+        uiVariables.enabled = !isEditMode
+        uiImport.enabled = !isEditMode
+        uiSend.enabled = !isEditMode
+        uiMethod.enabled = !isEditMode
+        uiBody.enabled = !isEditMode
+        uiHeaders.enabled = !isEditMode
+        uiResponseBody.enabled = !isEditMode
+        uiResponseHeader.enabled = !isEditMode
+        uiCollection.enabled = !isEditMode
+        uiUrl.enabled = !isEditMode
+        uiCancel.visible = isEditMode
+        uiEdit.text = if (isEditMode) {
+            "Save"
+        } else {
+            "Edit"
         }
     }
 
@@ -169,22 +212,51 @@ var callback = object : AppMaster.Callback {
 
         println(collection.info.name)
         collection.groups.forEach { group ->
-            box.label(group.name)
-            boxChildCount++
-            for (item in group.items) {
-                box.button(item.name) {
-                    action {
-                        click(item)
+            val uiGroup = box.vbox {}
+            uiGroup.hbox {
+                label(group.name)
+                if (isEditMode) {
+                    button("⌫") {
+                        action {
+                            collection.groups.remove(group)
+                            uiGroup.hide()
+                        }
+                    }
+                    button("✎") {
+                        action {
+
+                        }
                     }
                 }
-                boxChildCount++
-                if (boxChildCount == 2) {
+            }
+            group.items.forEachIndexed { index, item ->
+                uiGroup.hbox {
+                    button(item.name) {
+                        stretchy = true
+                        action {
+                            click(item)
+                        }
+                    }
+                    if (isEditMode) {
+                        button("⌫") {
+                            action {
+                                group.items.remove(item)
+                                this@hbox.hide()
+                            }
+                        }
+                        button("✎") {
+                            action {
+
+                            }
+                        }
+                    }
+                }
+                if (boxChildCount == 0 && index == 0) {
                     click(item)
                 }
             }
-            if (boxChildCount > 10) {
-                return
-            }
+
+            boxChildCount++
         }
     }
 
@@ -211,6 +283,8 @@ var callback = object : AppMaster.Callback {
             uiBody.value = body
         }
         uiBody.value = body
+        uiResponseBody.value = ""
+        uiResponseHeader.value = ""
     }
 
     override fun showResponse(body: String, headers: String, stats: String) {
@@ -241,10 +315,6 @@ var callback = object : AppMaster.Callback {
                         }
                     }
                 }
-            }
-            onClose {
-                this@appWindow.hide()
-                false
             }
         }
     }

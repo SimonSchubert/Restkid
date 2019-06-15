@@ -8,5 +8,5 @@ data class RequestGroup(
         var name: String = "",
         var description: String = "",
         @SerialName("item")
-        var items: List<RequestItem>
+        var items: MutableList<RequestItem> = mutableListOf()
 )

@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Api(
-        var info: ApiInfo,
+        var info: ApiInfo = ApiInfo(),
         @SerialName("item")
-        var groups: List<RequestGroup>,
+        var groups: MutableList<RequestGroup> = mutableListOf(),
         var variables: MutableList<VariableSet> = mutableListOf())
