@@ -3,10 +3,7 @@ import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.stringify
 import libui.ktx.*
-import models.Api
-import models.RequestItem
-import models.RequestItemHeader
-import models.Variable
+import models.*
 import platform.posix.exit
 
 lateinit var box: VBox
@@ -30,6 +27,7 @@ var isEditMode = false
 
 @ImplicitReflectionSerializer
 var callback = object : AppMaster.Callback {
+
     override fun showMainApp(collections: List<String>, request: (u: String, m: HttpMethod, b: String, h: Map<String, String>) -> Unit, loadByIndex: (Int) -> Unit, loadByPath: (String) -> Unit, showVariables: () -> Unit, onLoaded: () -> Unit, onClose: () -> Unit, onSave: () -> Unit) {
         appWindow(
                 title = "Restkid",
@@ -184,27 +182,7 @@ var callback = object : AppMaster.Callback {
         }
     }
 
-    private fun toggleEditMode() {
-        isEditMode = !isEditMode
-        uiVariables.enabled = !isEditMode
-        uiImport.enabled = !isEditMode
-        uiSend.enabled = !isEditMode
-        uiMethod.enabled = !isEditMode
-        uiBody.enabled = !isEditMode
-        uiHeaders.enabled = !isEditMode
-        uiResponseBody.enabled = !isEditMode
-        uiResponseHeader.enabled = !isEditMode
-        uiCollection.enabled = !isEditMode
-        uiUrl.enabled = !isEditMode
-        uiCancel.visible = isEditMode
-        uiEdit.text = if (isEditMode) {
-            "Save"
-        } else {
-            "Edit"
-        }
-    }
-
-    override fun showCollection(collection: Api, click: (RequestItem) -> Unit) {
+    override fun showCollection(collection: Api, click: (RequestItem) -> Unit, rename: (String, RequestGroup?, RequestItem?) -> Unit) {
         for (index in 0 until boxChildCount) {
             box.delete(0)
         }
@@ -224,7 +202,7 @@ var callback = object : AppMaster.Callback {
                     }
                     button("✎") {
                         action {
-
+                            rename(group.name, group, null)
                         }
                     }
                 }
@@ -246,7 +224,7 @@ var callback = object : AppMaster.Callback {
                         }
                         button("✎") {
                             action {
-
+                                rename(item.name, null, item)
                             }
                         }
                     }
@@ -345,6 +323,33 @@ var callback = object : AppMaster.Callback {
         }
     }
 
+    override fun showNameDialog(current: String, save: (String) -> Unit) {
+        appWindow("Rename", 100, 30) {
+            vbox {
+                val uiText = textfield {
+                    value = current
+                }
+                hbox {
+                    button("Cancel") {
+                        action {
+                            this@appWindow.hide()
+                        }
+                    }
+                    button("Save") {
+                        action {
+                            save(uiText.value)
+                            this@appWindow.hide()
+                        }
+                    }
+                }
+            }
+            onClose {
+                this@appWindow.hide()
+                true
+            }
+        }
+    }
+
     override fun showVariablesWindow(collection: Api, save: () -> Unit, remove: (Int) -> Unit, new: () -> Unit) {
         lateinit var variableBox: Box
         lateinit var comboBox: Combobox
@@ -429,6 +434,26 @@ var appMaster = AppMaster(callback)
 @ImplicitReflectionSerializer
 fun main() {
     appMaster.start()
+}
+
+private fun toggleEditMode() {
+    isEditMode = !isEditMode
+    uiVariables.enabled = !isEditMode
+    uiImport.enabled = !isEditMode
+    uiSend.enabled = !isEditMode
+    uiMethod.enabled = !isEditMode
+    uiBody.enabled = !isEditMode
+    uiHeaders.enabled = !isEditMode
+    uiResponseBody.enabled = !isEditMode
+    uiResponseHeader.enabled = !isEditMode
+    uiCollection.enabled = !isEditMode
+    uiUrl.enabled = !isEditMode
+    uiCancel.visible = isEditMode
+    uiEdit.text = if (isEditMode) {
+        "Save"
+    } else {
+        "Edit"
+    }
 }
 
 fun Combobox.fillVariables(collection: Api, variableBox: Box, textfields: MutableList<Pair<TextField, TextField>>, variablesChildCount: Int): Int {

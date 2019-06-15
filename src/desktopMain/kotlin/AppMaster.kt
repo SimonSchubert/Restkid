@@ -14,10 +14,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.stringify
-import models.Api
-import models.RequestItem
-import models.RequestItemHeader
-import models.VariableSet
+import models.*
 import platform.posix.*
 import kotlin.system.getTimeMillis
 
@@ -34,8 +31,10 @@ class AppMaster(private val callback: Callback) {
             }, { index ->
                 val path = getCollectionsPath()
                 loadCollection("$path/${collections[index]}.json")
+                showCollection()
             }, { path ->
                 loadCollection(path)
+                showCollection()
             }, {
                 showVariablesWindow()
             }, {
@@ -43,6 +42,7 @@ class AppMaster(private val callback: Callback) {
                     uiCollection.value = 0
                     val path = getCollectionsPath()
                     loadCollection("$path/${collections[0]}.json")
+                    showCollection()
                 }
             }, {
                 callback.showSaveDialog {
@@ -56,12 +56,13 @@ class AppMaster(private val callback: Callback) {
 
     interface Callback {
         fun showResponse(body: String, headers: String, stats: String)
-        fun showCollection(collection: Api, click: (RequestItem) -> Unit)
+        fun showCollection(collection: Api, click: (RequestItem) -> Unit, rename: (String, RequestGroup?, RequestItem?) -> Unit)
         fun showRequest(url: String, method: String, headers: List<RequestItemHeader>, body: String)
         fun showVariablesWindow(collection: Api, save: () -> Unit, remove: (Int) -> Unit, new: () -> Unit)
         fun showNewVariableSetWindow(collection: Api, save: (String) -> Unit)
         fun showSaveDialog(save: () -> Unit)
         fun showMainApp(collections: List<String>, request: (u: String, m: HttpMethod, b: String, h: Map<String, String>) -> Unit, loadByIndex: (Int) -> Unit, loadByPath: (String) -> Unit, showVariables: () -> Unit, onLoaded: () -> Unit, onClose: () -> Unit, onSave: () -> Unit)
+        fun showNameDialog(current: String, save: (String) -> Unit)
     }
 
     private fun makeRequest(u: String, m: HttpMethod, b: String, h: Map<String, String>) {
@@ -138,10 +139,6 @@ class AppMaster(private val callback: Callback) {
                 }
 
                 collection = Json.nonstrict.parse(Api.serializer(), content)
-
-                callback.showCollection(collection) {
-                    callback.showRequest(it.request.url, it.request.method, it.request.headers, it.request.body)
-                }
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {
@@ -150,7 +147,21 @@ class AppMaster(private val callback: Callback) {
         }
     }
 
-    internal fun saveCollection() {
+    private fun showCollection() {
+        memScoped {
+            callback.showCollection(collection, {
+                callback.showRequest(it.request.url, it.request.method, it.request.headers, it.request.body)
+            }, { current: String, requestGroup: RequestGroup?, requestItem: RequestItem? ->
+                callback.showNameDialog(current) {
+                    requestGroup?.name = it
+                    requestItem?.name = it
+                    showCollection()
+                }
+            })
+        }
+    }
+
+    private fun saveCollection() {
         memScoped {
             val path = getCollectionsPath()
             mkdir(path, S_IRWXU)
