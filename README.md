@@ -1,9 +1,12 @@
+[![GitHub](https://img.shields.io/github/license/SimonSchubert/Restkid.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+[![Codacy grade](https://img.shields.io/codacy/grade/86b4dab3e71b4dceba007380449a7733.svg)](https://app.codacy.com/project/sschubert89/Restkid/dashboard)
+[![Liberapay receiving](https://img.shields.io/liberapay/receives/arnald.svg)](https://liberapay.com/arnald/donate)
+
 # Restkid
 
 Lightweight API testing tool
 
 ## Screenshot
-
 
 <img src="https://raw.githubusercontent.com/SimonSchubert/Restkid/master/art/macos_screen_01.png" width="700">
 
@@ -13,29 +16,25 @@ As a mobile developer I work with private and public apis on a daily base. Postm
 
 ## Todo v1.0
 
-- Import collections from other tools like Postman and Pawn
-- Edit/Add collections within the app
-- Bundle .kexe to exe/application/sh
-- App Icon
-- App menu in statusbar
-  - About
-  - Settings
-  - Check for update
-  - ...
-
-#### Blocked by upstream
-- ScrollView for request buttons on the left side
-- TreeView to display an interactive Json response (+ and - buttons)
+* Import collections from other tools like Postman and Pawn
+* Edit/Add collections within the app
+* Bundle .kexe to exe/application/sh
+* App Icon
+* App menu in statusbar
+  * About
+  * Settings
+  * Check for update
+  * ...
+* [blocked] ScrollView for request buttons on the left side
+* [blocked] TreeView to display an interactive Json response (+ and - buttons)
 
 ## Todo v1.x
 
-- Export request to code for most common frameworks (e.g. ktor,retrofit,curl)
-- Export json response to classes for most common languages (e.g. POJO)
-
-#### Blocked by upstream
-- Modular alert windows with action buttons
-- Buttons with icons
-- Copy and paste for TextView and TextArea with standard shortcuts
+* Export request to code for most common frameworks (e.g. ktor,retrofit,curl)
+* Export json response to classes for most common languages (e.g. POJO)
+* [blocked] Modular alert windows with action buttons
+* [blocked] Buttons with icons
+* [blocked] Copy and paste for TextView and TextArea with standard shortcuts
 
 ## License
 
