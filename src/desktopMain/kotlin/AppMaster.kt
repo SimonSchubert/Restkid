@@ -66,7 +66,7 @@ class AppMaster(private val callback: Callback) {
         /**
          * Show request groups and items
          */
-        fun onShowCollection(collection: Api, click: (RequestItem) -> Unit, rename: (String, RequestGroup?, RequestItem?) -> Unit, reload: () -> Unit)
+        fun onShowCollection(collection: Api, click: (RequestItem) -> Unit, rename: (String, RequestGroup?, RequestItem?) -> Unit, add: (RequestGroup?) -> Unit, reload: () -> Unit)
 
         /**
          * Show request data
@@ -162,6 +162,15 @@ class AppMaster(private val callback: Callback) {
                 callback.onShowNameDialog("Rename", current) { name ->
                     requestGroup?.name = name
                     requestItem?.name = name
+                    showCollection()
+                }
+            }, { requestGroup: RequestGroup? ->
+                callback.onShowNameDialog("Request", "") { name ->
+                    if (requestGroup != null) {
+                        requestGroup.items.add(RequestItem(name = name))
+                    } else {
+                        collection.groups.add(RequestGroup(name = name))
+                    }
                     showCollection()
                 }
             }, {

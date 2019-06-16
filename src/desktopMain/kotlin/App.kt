@@ -182,7 +182,7 @@ var callback = object : AppMaster.Callback {
         }
     }
 
-    override fun onShowCollection(collection: Api, click: (RequestItem) -> Unit, rename: (String, RequestGroup?, RequestItem?) -> Unit, reload: () -> Unit) {
+    override fun onShowCollection(collection: Api, click: (RequestItem) -> Unit, rename: (String, RequestGroup?, RequestItem?) -> Unit, add: (RequestGroup?) -> Unit, reload: () -> Unit) {
         for (index in 0 until boxChildCount) {
             box.delete(0)
         }
@@ -267,7 +267,22 @@ var callback = object : AppMaster.Callback {
                     click(item)
                 }
             }
+            if (isEditMode) {
+                uiGroup.button("＋") {
+                    action {
+                        add(group)
+                    }
+                }
+            }
 
+            boxChildCount++
+        }
+        if (isEditMode) {
+            box.button("＋ group") {
+                action {
+                    add(null)
+                }
+            }
             boxChildCount++
         }
     }
@@ -404,7 +419,7 @@ var callback = object : AppMaster.Callback {
                 variableBox = vbox {
 
                 }
-                button("Add variable") {
+                button("＋") {
                     action {
                         variableBox.hbox {
                             stretchy = true
