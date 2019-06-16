@@ -66,7 +66,7 @@ class AppMaster(private val callback: Callback) {
         /**
          * Show request groups and items
          */
-        fun onShowCollection(collection: Api, click: (RequestItem) -> Unit, rename: (String, RequestGroup?, RequestItem?) -> Unit)
+        fun onShowCollection(collection: Api, click: (RequestItem) -> Unit, rename: (String, RequestGroup?, RequestItem?) -> Unit, reload: () -> Unit)
 
         /**
          * Show request data
@@ -77,11 +77,6 @@ class AppMaster(private val callback: Callback) {
          * Show ui to select and edit variables
          */
         fun onShowVariablesWindow(collection: Api, save: () -> Unit, remove: (Int) -> Unit, new: () -> Unit)
-
-        /**
-         * Show ui to enter new set name
-         */
-        fun onShowNewVariableSetWindow(collection: Api, save: (String) -> Unit)
 
         /**
          * Show ui to ask to save changes before closing app
@@ -96,7 +91,7 @@ class AppMaster(private val callback: Callback) {
         /**
          * Show ui to enter name
          */
-        fun onShowNameDialog(current: String, save: (String) -> Unit)
+        fun onShowNameDialog(title: String, current: String, save: (String) -> Unit)
     }
 
     private fun makeRequest(u: String, m: HttpMethod, b: String, h: Map<String, String>) {
@@ -186,11 +181,13 @@ class AppMaster(private val callback: Callback) {
             callback.onShowCollection(collection, {
                 callback.onShowRequest(it.request.url, it.request.method, it.request.headers, it.request.body)
             }, { current: String, requestGroup: RequestGroup?, requestItem: RequestItem? ->
-                callback.onShowNameDialog(current) {
-                    requestGroup?.name = it
-                    requestItem?.name = it
+                callback.onShowNameDialog("Rename", current) { name ->
+                    requestGroup?.name = name
+                    requestItem?.name = name
                     showCollection()
                 }
+            }, {
+                showCollection()
             })
         }
     }
@@ -232,12 +229,13 @@ class AppMaster(private val callback: Callback) {
 
     private fun showNewVariableSetWindow() {
         memScoped {
-            callback.onShowNewVariableSetWindow(collection) { name ->
+            callback.onShowNameDialog("New set", "") { name ->
                 if (collection.variables.any { it.name == name }) {
 
                 } else {
                     val variablesSet = VariableSet(name, listOf())
                     collection.variables.add(variablesSet)
+                    showVariablesWindow()
                 }
             }
         }

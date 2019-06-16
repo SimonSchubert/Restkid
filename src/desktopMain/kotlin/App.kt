@@ -182,17 +182,19 @@ var callback = object : AppMaster.Callback {
         }
     }
 
-    override fun onShowCollection(collection: Api, click: (RequestItem) -> Unit, rename: (String, RequestGroup?, RequestItem?) -> Unit) {
+    override fun onShowCollection(collection: Api, click: (RequestItem) -> Unit, rename: (String, RequestGroup?, RequestItem?) -> Unit, reload: () -> Unit) {
         for (index in 0 until boxChildCount) {
             box.delete(0)
         }
         boxChildCount = 0
 
         println(collection.info.name)
-        collection.groups.forEach { group ->
+        collection.groups.forEachIndexed { index, group ->
             val uiGroup = box.vbox {}
             uiGroup.hbox {
-                label(group.name)
+                label(group.name) {
+                    stretchy = true
+                }
                 if (isEditMode) {
                     button("⌫") {
                         action {
@@ -204,6 +206,22 @@ var callback = object : AppMaster.Callback {
                         action {
                             rename(group.name, group, null)
                         }
+                    }
+                    button("⇧") {
+                        action {
+                            collection.groups.remove(group)
+                            collection.groups.add(index - 1, group)
+                            reload()
+                        }
+                        enabled = index > 0
+                    }
+                    button("⇩") {
+                        action {
+                            collection.groups.remove(group)
+                            collection.groups.add(index + 1, group)
+                            reload()
+                        }
+                        enabled = index < collection.groups.count() - 1
                     }
                 }
             }
@@ -226,6 +244,22 @@ var callback = object : AppMaster.Callback {
                             action {
                                 rename(item.name, null, item)
                             }
+                        }
+                        button("⇧") {
+                            action {
+                                group.items.remove(item)
+                                group.items.add(index - 1, item)
+                                reload()
+                            }
+                            enabled = index > 0
+                        }
+                        button("⇩") {
+                            action {
+                                group.items.remove(item)
+                                group.items.add(index + 1, item)
+                                reload()
+                            }
+                            enabled = index < group.items.count() - 1
                         }
                     }
                 }
@@ -297,34 +331,8 @@ var callback = object : AppMaster.Callback {
         }
     }
 
-    override fun onShowNewVariableSetWindow(collection: Api, save: (String) -> Unit) {
-        appWindow("Create new set", 100, 30) {
-            vbox {
-                lateinit var textField: TextField
-                hbox {
-                    label("Name:")
-                    textField = textfield {
-                        stretchy = true
-                    }
-                }
-                hbox {
-                    button("Cancel") {
-                        this@appWindow.hide()
-                    }
-                    button("Save") {
-                        action {
-                            val name = textField.value
-                            save(name)
-                            this@appWindow.hide()
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    override fun onShowNameDialog(current: String, save: (String) -> Unit) {
-        appWindow("Rename", 100, 30) {
+    override fun onShowNameDialog(title: String, current: String, save: (String) -> Unit) {
+        appWindow(title, 100, 30) {
             vbox {
                 val uiText = textfield {
                     value = current
@@ -337,8 +345,8 @@ var callback = object : AppMaster.Callback {
                     }
                     button("Save") {
                         action {
-                            save(uiText.value)
                             this@appWindow.hide()
+                            save(uiText.value)
                         }
                     }
                 }
@@ -370,13 +378,15 @@ var callback = object : AppMaster.Callback {
                             variablesChildCount = fillVariables(collection, variableBox, textfields, variablesChildCount)
                         }
                     }
-                    button("+") {
+                    button("＋") {
                         action {
+                            this@appWindow.hide()
                             new()
                         }
                     }
-                    button("-") {
+                    button("⌫") {
                         action {
+                            this@appWindow.hide()
                             remove(comboBox.value)
                         }
                     }
@@ -405,7 +415,7 @@ var callback = object : AppMaster.Callback {
                                 stretchy = true
                             }
                             val pair = Pair(key, value)
-                            button("-") {
+                            button("⌫") {
                                 action {
                                     textfields.remove(pair)
                                     this@hbox.hide()
@@ -422,6 +432,7 @@ var callback = object : AppMaster.Callback {
                 val variables = textfields.map { Variable(it.first.value, it.second.value) }
                 collection.variables[comboBox.value].variables = variables
                 save()
+                this@appWindow.hide()
                 true
             }
         }
@@ -475,7 +486,7 @@ fun Combobox.fillVariables(collection: Api, variableBox: Box, textfields: Mutabl
                 stretchy = true
             }
             val pair = Pair(key, value)
-            button("-") {
+            button("⌫") {
                 action {
                     textfields.remove(pair)
                     this@hbox.hide()
