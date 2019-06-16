@@ -135,9 +135,9 @@ class AppMaster(private val callback: Callback) {
                         val headers = headerList.joinToString(separator = "\n") {
                             it.first + " = " + it.second
                         }
-                        val contentSize = (headerList.firstOrNull { it.first == "Content-Length" }?.second?.get(0)?.toLong()
-                                ?: 0) / 1024f
-                        val stats = "Status: ${response.status.value} ${response.status.description} / Time: ${getTimeMillis() - startTime} ms / Size: $contentSize KB"
+                        val contentSize = headerList.firstOrNull { it.first == "Content-Length" }?.second?.get(0)?.toDouble()
+                                ?: 0.0
+                        val stats = "Status: ${response.status.value} ${response.status.description} / Time: ${getTimeMillis() - startTime} ms / Size: ${contentSize.formatToHumanReadableSize()}"
 
                         callback.onShowResponse(body, headers, stats)
                     } else {
@@ -201,4 +201,25 @@ class AppMaster(private val callback: Callback) {
         }
     }
 
+    /**
+     * Format bytes to human readable format (e.g. 54.12 KB)
+     */
+    private fun Double.formatToHumanReadableSize(): String {
+        var bytes = this
+        val dictionary = arrayOf("bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+        var index = 0
+        while (index < dictionary.size) {
+            if (bytes < 1024) {
+                break
+            }
+            bytes /= 1024
+            index++
+        }
+        var string = bytes.toString()
+        val pointIndex = string.indexOf(".")
+        if (string.length > pointIndex + 3) {
+            string = string.substring(0, pointIndex + 3)
+        }
+        return string + " " + dictionary[index]
+    }
 }
