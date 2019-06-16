@@ -21,14 +21,27 @@ lateinit var uiResponseBody: TextArea
 lateinit var uiResponseHeader: TextArea
 lateinit var uiCollection: Combobox
 lateinit var uiCancel: Button
+lateinit var uiNew: Button
 var boxChildCount = 0
 var hasUnsavedChange = false
 var isEditMode = false
 
 @ImplicitReflectionSerializer
 var callback = object : AppMaster.Callback {
+    override fun onKeepRequestChanges(item: RequestItem) {
+        item.request.url = uiUrl.value
+        item.request.body = uiBody.value
+        item.request.method = if (uiMethod.value == 0) {
+            "GET"
+        } else {
+            "POST"
+        }
+        item.request.headers = uiHeaders.value.lines().map { it.split(":") }.filter { it.count() > 1 }.map {
+            RequestItemHeader(key = it[0].trim(), value = it[1].trim())
+        }.toMutableList()
+    }
 
-    override fun onShowMainApp(collections: List<String>, request: (u: String, m: HttpMethod, b: String, h: Map<String, String>) -> Unit, loadByIndex: (Int) -> Unit, loadByPath: (String) -> Unit, showVariables: () -> Unit, onLoaded: () -> Unit, onClose: () -> Unit, onSave: () -> Unit) {
+    override fun onShowMainApp(collections: List<String>, request: (u: String, m: HttpMethod, b: String, h: Map<String, String>) -> Unit, loadByIndex: (Int) -> Unit, loadByPath: (String) -> Unit, showVariables: () -> Unit, newCollection: () -> Unit, onLoaded: () -> Unit, onClose: () -> Unit, onSave: () -> Unit) {
         appWindow(
                 title = "Restkid",
                 width = 620,
@@ -46,6 +59,11 @@ var callback = object : AppMaster.Callback {
             hbox {
                 vbox {
                     hbox {
+                        uiNew = button("New") {
+                            action {
+                                newCollection()
+                            }
+                        }
                         uiImport = button("Import") {
                             action {
                                 val importPath = OpenFileDialog() ?: ""
@@ -182,7 +200,7 @@ var callback = object : AppMaster.Callback {
         }
     }
 
-    override fun onShowCollection(collection: Api, click: (RequestItem) -> Unit, rename: (String, RequestGroup?, RequestItem?) -> Unit, add: (RequestGroup?) -> Unit, reload: () -> Unit) {
+    override fun onShowCollection(collection: Api, show: (RequestItem) -> Unit, rename: (String, RequestGroup?, RequestItem?) -> Unit, add: (RequestGroup?) -> Unit, reload: () -> Unit) {
         for (index in 0 until boxChildCount) {
             box.delete(0)
         }
@@ -190,7 +208,8 @@ var callback = object : AppMaster.Callback {
 
         println(collection.info.name)
         collection.groups.forEachIndexed { index, group ->
-            val uiGroup = box.vbox {}
+            val uiGroup = box.vbox {
+            }
             uiGroup.hbox {
                 label(group.name) {
                     stretchy = true
@@ -227,10 +246,11 @@ var callback = object : AppMaster.Callback {
             }
             group.items.forEachIndexed { index, item ->
                 uiGroup.hbox {
+                    stretchy = false
                     button(item.name) {
                         stretchy = true
                         action {
-                            click(item)
+                            show(item)
                         }
                     }
                     if (isEditMode) {
@@ -264,7 +284,7 @@ var callback = object : AppMaster.Callback {
                     }
                 }
                 if (boxChildCount == 0 && index == 0) {
-                    click(item)
+                    show(item)
                 }
             }
             if (isEditMode) {
@@ -285,6 +305,12 @@ var callback = object : AppMaster.Callback {
             }
             boxChildCount++
         }
+
+        // workaround for last button vertical centered bug
+        box.vbox {
+
+        }
+        boxChildCount++
     }
 
     override fun onShowRequest(url: String, method: String, headers: List<RequestItemHeader>, body: String) {
@@ -474,6 +500,7 @@ private fun toggleEditMode() {
     uiResponseHeader.enabled = !isEditMode
     uiCollection.enabled = !isEditMode
     uiUrl.enabled = !isEditMode
+    uiNew.enabled = !isEditMode
     uiCancel.visible = isEditMode
     uiEdit.text = if (isEditMode) {
         "Save"

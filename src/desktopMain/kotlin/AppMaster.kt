@@ -25,6 +25,7 @@ class AppMaster(private val callback: Callback) {
 
     lateinit var collection: Api
     var collectionManager = CollectionManager()
+    var requestItem: RequestItem? = null
 
     fun start() {
         memScoped {
@@ -40,6 +41,8 @@ class AppMaster(private val callback: Callback) {
                 showCollection()
             }, {
                 showVariablesWindow()
+            }, {
+                showNewCollectionWindow()
             }, {
                 if (collections.size > 0) {
                     uiCollection.value = 0
@@ -66,7 +69,7 @@ class AppMaster(private val callback: Callback) {
         /**
          * Show request groups and items
          */
-        fun onShowCollection(collection: Api, click: (RequestItem) -> Unit, rename: (String, RequestGroup?, RequestItem?) -> Unit, add: (RequestGroup?) -> Unit, reload: () -> Unit)
+        fun onShowCollection(collection: Api, show: (RequestItem) -> Unit, rename: (String, RequestGroup?, RequestItem?) -> Unit, add: (RequestGroup?) -> Unit, reload: () -> Unit)
 
         /**
          * Show request data
@@ -86,12 +89,17 @@ class AppMaster(private val callback: Callback) {
         /**
          * Show main ui with collection selector
          */
-        fun onShowMainApp(collections: List<String>, request: (u: String, m: HttpMethod, b: String, h: Map<String, String>) -> Unit, loadByIndex: (Int) -> Unit, loadByPath: (String) -> Unit, showVariables: () -> Unit, onLoaded: () -> Unit, onClose: () -> Unit, onSave: () -> Unit)
+        fun onShowMainApp(collections: List<String>, request: (u: String, m: HttpMethod, b: String, h: Map<String, String>) -> Unit, loadByIndex: (Int) -> Unit, loadByPath: (String) -> Unit, showVariables: () -> Unit, newCollection: () -> Unit, onLoaded: () -> Unit, onClose: () -> Unit, onSave: () -> Unit)
 
         /**
          * Show ui to enter name
          */
         fun onShowNameDialog(title: String, current: String, save: (String) -> Unit)
+
+        /**
+         * Keep changes in request object
+         */
+        fun onKeepRequestChanges(item: RequestItem)
     }
 
     private fun makeRequest(u: String, m: HttpMethod, b: String, h: Map<String, String>) {
@@ -156,7 +164,12 @@ class AppMaster(private val callback: Callback) {
 
     private fun showCollection() {
         memScoped {
+            callback.onShowRequest("", "POST", emptyList(), "")
             callback.onShowCollection(collection, {
+                requestItem?.let {
+                    callback.onKeepRequestChanges(it)
+                }
+                requestItem = it
                 callback.onShowRequest(it.request.url, it.request.method, it.request.headers, it.request.body)
             }, { current: String, requestGroup: RequestGroup?, requestItem: RequestItem? ->
                 callback.onShowNameDialog("Rename", current) { name ->
@@ -193,6 +206,20 @@ class AppMaster(private val callback: Callback) {
             }, {
                 showNewVariableSetWindow()
             })
+        }
+    }
+
+    private fun showNewCollectionWindow() {
+        memScoped {
+            callback.onShowNameDialog("New collection", "") { name ->
+                collection = Api()
+                collection.info.name = name
+                val requestItem = RequestItem("Request", request = Request(url = "http://httpbin.org/anything/{anything}", method = "POST", body = "{\"id\": \"12345\"}", headers = mutableListOf(RequestItemHeader(key = "accept", value = "application/json"))))
+                val requestGroup = RequestGroup(name = "Group", items = mutableListOf(requestItem))
+                collection.groups.add(requestGroup)
+                collectionManager.saveCollection(collection)
+                showCollection()
+            }
         }
     }
 

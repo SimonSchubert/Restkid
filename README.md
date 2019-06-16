@@ -19,7 +19,6 @@ The goal of the project is a native and functional API testing tool with a simpl
 ## Todo v1.0
 
 *   Import collections from other tools like Postman and Pawn
-*   Edit/Add collections within the app
 *   Bundle .kexe to exe/application/sh
 *   App Icon
 *   App menu (About, Settings, Check for updates...)
