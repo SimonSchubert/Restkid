@@ -12,7 +12,9 @@ Lightweight API testing tool
 
 ## Why
 
-As a mobile developer I work with private and public apis on a daily base. Postman for example is a great tool but it is build with Electron(comes with a Xbox gamepad driver) and takes ~9 seconds on my Laptop for a cold start. I'm a big fan of performant and open source software but none of the tools I tested could fullfill that requirement. And because I use the tool everyday and I love writting Kotlin I thought it might be a good opportunity to start building my own tool for my own suites.
+As a mobile developer I work with private and public apis on a daily base. Postman for example is a great tool but it is build with Electron(comes with a Xbox gamepad driver) and takes ~9 seconds on my Laptop for a cold start. I'm a big fan of (none electron) open source software and no tool that I tested could fullfill that requirement. And because I use the tool everyday and I love writing Kotlin I thought it might be a good opportunity to start building my own tool that perfectly suites my own needs.
+
+The goal of the project is a native and functional API testing tool with a simple UI for Linux, Mac and Windows.
 
 ## Todo v1.0
 
@@ -20,11 +22,7 @@ As a mobile developer I work with private and public apis on a daily base. Postm
 *   Edit/Add collections within the app
 *   Bundle .kexe to exe/application/sh
 *   App Icon
-*   App menu in statusbar
-  *   About
-  *   Settings
-  *   Check for update
-  *   ...
+*   App menu (About, Settings, Check for updates...)
 *   (blocked) ScrollView for request buttons on the left side
 *   (blocked) TreeView to display an interactive Json response (+ and - buttons)
 
