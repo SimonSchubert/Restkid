@@ -3,14 +3,18 @@ import io.ktor.client.call.call
 import io.ktor.client.call.receive
 import io.ktor.client.engine.curl.Curl
 import io.ktor.client.response.HttpResponse
+import io.ktor.client.response.readBytes
 import io.ktor.client.response.readText
 import io.ktor.content.TextContent
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentLength
 import io.ktor.util.toMap
 import kotlinx.cinterop.memScoped
 import kotlinx.coroutines.runBlocking
+import kotlinx.io.charsets.Charsets
+import kotlinx.io.core.String
 import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.stringify
@@ -130,8 +134,7 @@ class AppMaster(private val callback: Callback) {
 
                     val response = call.response.receive<HttpResponse>()
 
-                    val headerList = response.headers.toMap().toList()
-                    val headers = headerList.joinToString(separator = "\n") {
+                    val headers = response.headers.toMap().toList().joinToString(separator = "\n") {
                         it.first + " = " + it.second
                     }
 
@@ -144,15 +147,15 @@ class AppMaster(private val callback: Callback) {
                             text
                         }
 
-                        val contentSize = headerList.firstOrNull { it.first == "Content-Length" }?.second?.get(0)?.toDouble()
-                                ?: 0.0
+                        val contentSize = response.contentLength() ?: 0
                         val stats = "Status: ${response.status.value} ${response.status.description} / Time: ${getTimeMillis() - startTime} ms / Size: ${contentSize.formatToHumanReadableSize()}"
 
                         callback.onShowResponse(body, headers, stats)
                     } else {
                         val stats = "Status: ${response.status.value} ${response.status.description} / Time: ${getTimeMillis() - startTime} ms"
 
-                        callback.onShowResponse("", headers, stats)
+                        val body = String(response.readBytes(), charset = Charsets.UTF_8)
+                        callback.onShowResponse(body, headers, stats)
                     }
 
                     response.close()
@@ -241,7 +244,7 @@ class AppMaster(private val callback: Callback) {
     /**
      * Format bytes to human readable format (e.g. 54.12 KB)
      */
-    private fun Double.formatToHumanReadableSize(): String {
+    private fun Long.formatToHumanReadableSize(): String {
         var bytes = this
         val dictionary = arrayOf("bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
         var index = 0
