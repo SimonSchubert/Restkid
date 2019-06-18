@@ -122,6 +122,11 @@ var callback = object : AppMaster.Callback {
                         uiMethod = combobox {
                             item("GET")
                             item("POST")
+                            item("PUT")
+                            item("DELETE")
+                            item("PATCH")
+                            item("HEAD")
+                            item("OPTIONS")
 
                             action {
                                 uiBody.visible = value != 0
@@ -139,6 +144,7 @@ var callback = object : AppMaster.Callback {
                             action {
                                 uiResponseBody.value = ""
                                 uiResponseHeader.value = ""
+                                uiResponseStatus.text = ""
 
                                 val url = uiUrl.value
                                 val method = if (uiMethod.value == 0) {
@@ -323,7 +329,14 @@ var callback = object : AppMaster.Callback {
         } else {
             uiBody.show()
             uiBodyLabel.show()
-            1
+            when (method) {
+                "POST" -> 1
+                "PUT" -> 2
+                "DELETE" -> 3
+                "PATCH" -> 4
+                "HEAD" -> 5
+                else -> 6
+            }
         }
         uiHeaders.value = ""
         for (header in headers) {
@@ -338,6 +351,7 @@ var callback = object : AppMaster.Callback {
         uiBody.value = body
         uiResponseBody.value = ""
         uiResponseHeader.value = ""
+        uiResponseStatus.text = ""
     }
 
     override fun onShowResponse(body: String, headers: String, stats: String) {
