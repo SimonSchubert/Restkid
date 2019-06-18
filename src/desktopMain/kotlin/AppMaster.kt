@@ -130,6 +130,11 @@ class AppMaster(private val callback: Callback) {
 
                     val response = call.response.receive<HttpResponse>()
 
+                    val headerList = response.headers.toMap().toList()
+                    val headers = headerList.joinToString(separator = "\n") {
+                        it.first + " = " + it.second
+                    }
+
                     if (response.status == HttpStatusCode.OK) {
                         val text = response.readText()
                         val body = try {
@@ -139,10 +144,6 @@ class AppMaster(private val callback: Callback) {
                             text
                         }
 
-                        val headerList = response.headers.toMap().toList()
-                        val headers = headerList.joinToString(separator = "\n") {
-                            it.first + " = " + it.second
-                        }
                         val contentSize = headerList.firstOrNull { it.first == "Content-Length" }?.second?.get(0)?.toDouble()
                                 ?: 0.0
                         val stats = "Status: ${response.status.value} ${response.status.description} / Time: ${getTimeMillis() - startTime} ms / Size: ${contentSize.formatToHumanReadableSize()}"
@@ -151,7 +152,7 @@ class AppMaster(private val callback: Callback) {
                     } else {
                         val stats = "Status: ${response.status.value} ${response.status.description} / Time: ${getTimeMillis() - startTime} ms"
 
-                        callback.onShowResponse("", "", stats)
+                        callback.onShowResponse("", headers, stats)
                     }
 
                     response.close()
