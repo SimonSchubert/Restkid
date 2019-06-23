@@ -56,6 +56,9 @@ class AppMaster(private val callback: Callback) {
                 }
             }, {
                 callback.onShowSaveDialog {
+                    requestItem?.let {
+                        callback.onKeepRequestChanges(it)
+                    }
                     collectionManager.saveCollection(collection)
                 }
             }, {
@@ -161,6 +164,7 @@ class AppMaster(private val callback: Callback) {
                     response.close()
                 } catch (e: Exception) {
                     e.printStackTrace()
+                    callback.onShowResponse("", "", e.message ?: "Error")
                 }
             }
         }
