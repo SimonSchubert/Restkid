@@ -1,8 +1,8 @@
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 
 plugins {
-    id("kotlin-multiplatform") version "1.3.31"
-    id("kotlinx-serialization") version "1.3.31"
+    id("kotlin-multiplatform") version "1.3.40"
+    id("kotlinx-serialization") version "1.3.40"
     id("com.github.ben-manes.versions") version "0.21.0"
 }
 
@@ -26,9 +26,9 @@ kotlin {
     val desktopMain by sourceSets.getting {
         dependencies {
             implementation("com.github.msink:libui:0.1.4")
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:0.11.0")
-            implementation("io.ktor:ktor-client-core-native:1.2.1")
-            implementation("io.ktor:ktor-client-curl:1.2.1")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:0.11.1")
+            implementation("io.ktor:ktor-client-core-native:1.2.2")
+            implementation("io.ktor:ktor-client-curl:1.2.2")
         }
     }
 
