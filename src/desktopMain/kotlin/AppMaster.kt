@@ -33,6 +33,9 @@ class AppMaster(private val callback: Callback) {
     var collectionManager = CollectionManager()
     var requestItem: RequestItem? = null
 
+    /**
+     * Start the app
+     */
     fun start() {
         memScoped {
             val collections = collectionManager.getSavedCollections()
@@ -69,6 +72,9 @@ class AppMaster(private val callback: Callback) {
         }
     }
 
+    /**
+     * Interface to notify user interface changes
+     */
     interface Callback {
         /**
          * Show response data
@@ -235,9 +241,7 @@ class AppMaster(private val callback: Callback) {
     private fun showNewVariableSetWindow() {
         memScoped {
             callback.onShowNameDialog("New set", "") { name ->
-                if (collection.variables.any { it.name == name }) {
-
-                } else {
+                if (collection.variables.none { it.name == name }) {
                     val variablesSet = VariableSet(name, listOf())
                     collection.variables.add(variablesSet)
                     showVariablesWindow()

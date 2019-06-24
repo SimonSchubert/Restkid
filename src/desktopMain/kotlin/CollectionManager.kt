@@ -19,8 +19,7 @@ class CollectionManager {
 
             val name = collection.info.name
             val fileName = "$path/$name.json"
-            val file = fopen(fileName, "wt")
-            if (file == null) throw Error("Cannot write file '$fileName'")
+            val file = fopen(fileName, "wt") ?: return
             try {
                 val json = Json.stringify(Api.serializer(), collection)
                 fputs(json, file)
@@ -81,9 +80,6 @@ class CollectionManager {
         }
     }
 
-    /**
-     * Is path a directory
-     */
     private fun isDir(path: String): Boolean {
         memScoped {
             val s = alloc<stat>()
@@ -95,10 +91,7 @@ class CollectionManager {
         }
     }
 
-    /**
-     * Get directory of app data storage
-     */
-    private fun getStoragePath(): String {
+    private fun getAppStoragePath(): String {
         memScoped {
             val home = getenv("HOME")?.toKString() ?: ""
             return "$home/Restkid/"
@@ -109,6 +102,6 @@ class CollectionManager {
      * Get directory of collection data storage
      */
     internal fun getCollectionsPath(): String {
-        return memScoped { "${getStoragePath()}collections/" }
+        return memScoped { "${getAppStoragePath()}collections/" }
     }
 }

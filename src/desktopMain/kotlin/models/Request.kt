@@ -8,7 +8,6 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class Request(
-        // val url: URLUnion? = null,
         var url: String = "",
         var method: String = "",
         var description: String = "",

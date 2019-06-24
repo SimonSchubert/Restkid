@@ -524,11 +524,11 @@ private fun toggleEditMode() {
     }
 }
 
-fun Combobox.fillVariables(collection: Api, variableBox: Box, textfields: MutableList<Pair<TextField, TextField>>, variablesChildCount: Int): Int {
+private fun Combobox.fillVariables(collection: Api, variableBox: Box, textFields: MutableList<Pair<TextField, TextField>>, variablesChildCount: Int): Int {
     for (index in 0 until variablesChildCount) {
         variableBox.delete(0)
     }
-    textfields.clear()
+    textFields.clear()
 
     var childCount = 0
     collection.variables.getOrNull(value)?.variables?.forEach {
@@ -545,11 +545,11 @@ fun Combobox.fillVariables(collection: Api, variableBox: Box, textfields: Mutabl
             val pair = Pair(key, value)
             button("⌫") {
                 action {
-                    textfields.remove(pair)
+                    textFields.remove(pair)
                     this@hbox.hide()
                 }
             }
-            textfields.add(pair)
+            textFields.add(pair)
             childCount++
         }
     }
