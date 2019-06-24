@@ -1,6 +1,7 @@
 import io.ktor.http.HttpMethod
 import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonParsingException
 import kotlinx.serialization.stringify
 import libui.ktx.*
 import models.*
@@ -345,7 +346,7 @@ var callback = object : AppMaster.Callback {
         try {
             val json = Json.nonstrict.parseJson(body)
             uiBody.value = Json.indented.stringify(json)
-        } catch (e: Exception) {
+        } catch (e: JsonParsingException) {
             uiBody.value = body
         }
         uiBody.value = body

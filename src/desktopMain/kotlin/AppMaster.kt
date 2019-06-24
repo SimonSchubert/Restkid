@@ -2,6 +2,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.call
 import io.ktor.client.call.receive
 import io.ktor.client.engine.curl.Curl
+import io.ktor.client.engine.curl.CurlIllegalStateException
 import io.ktor.client.response.HttpResponse
 import io.ktor.client.response.readBytes
 import io.ktor.client.response.readText
@@ -17,6 +18,7 @@ import kotlinx.io.charsets.Charsets
 import kotlinx.io.core.String
 import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonParsingException
 import kotlinx.serialization.stringify
 import models.*
 import kotlin.system.getTimeMillis
@@ -146,7 +148,7 @@ class AppMaster(private val callback: Callback) {
                         val body = try {
                             val json = Json.nonstrict.parseJson(text)
                             Json.indented.stringify(json)
-                        } catch (e: Exception) {
+                        } catch (e: JsonParsingException) {
                             text
                         }
 
@@ -162,9 +164,8 @@ class AppMaster(private val callback: Callback) {
                     }
 
                     response.close()
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    callback.onShowResponse("", "", e.message ?: "Error")
+                } catch (e: CurlIllegalStateException) {
+                    callback.onShowResponse("", "", "Connection failed")
                 }
             }
         }

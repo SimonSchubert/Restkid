@@ -1,5 +1,6 @@
 import kotlinx.cinterop.*
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonParsingException
 import models.Api
 import platform.posix.*
 
@@ -47,7 +48,7 @@ class CollectionManager {
                 }
 
                 collection = Json.nonstrict.parse(Api.serializer(), content)
-            } catch (e: Exception) {
+            } catch (e: JsonParsingException) {
                 e.printStackTrace()
             } finally {
                 fclose(file)
