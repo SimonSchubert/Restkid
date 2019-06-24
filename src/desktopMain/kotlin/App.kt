@@ -222,18 +222,18 @@ var callback = object : AppMaster.Callback {
                     stretchy = true
                 }
                 if (isEditMode) {
-                    button("⌫") {
+                    button(CharSymbol.DELETE) {
                         action {
                             collection.groups.remove(group)
                             uiGroup.hide()
                         }
                     }
-                    button("✎") {
+                    button(CharSymbol.EDIT) {
                         action {
                             rename(group.name, group, null)
                         }
                     }
-                    button("⇧") {
+                    button(CharSymbol.UP) {
                         action {
                             collection.groups.remove(group)
                             collection.groups.add(index - 1, group)
@@ -241,7 +241,7 @@ var callback = object : AppMaster.Callback {
                         }
                         enabled = index > 0
                     }
-                    button("⇩") {
+                    button(CharSymbol.DOWN) {
                         action {
                             collection.groups.remove(group)
                             collection.groups.add(index + 1, group)
@@ -261,18 +261,18 @@ var callback = object : AppMaster.Callback {
                         }
                     }
                     if (isEditMode) {
-                        button("⌫") {
+                        button(CharSymbol.DELETE) {
                             action {
                                 group.items.remove(item)
                                 this@hbox.hide()
                             }
                         }
-                        button("✎") {
+                        button(CharSymbol.EDIT) {
                             action {
                                 rename(item.name, null, item)
                             }
                         }
-                        button("⇧") {
+                        button(CharSymbol.UP) {
                             action {
                                 group.items.remove(item)
                                 group.items.add(index - 1, item)
@@ -280,7 +280,7 @@ var callback = object : AppMaster.Callback {
                             }
                             enabled = index > 0
                         }
-                        button("⇩") {
+                        button(CharSymbol.DOWN) {
                             action {
                                 group.items.remove(item)
                                 group.items.add(index + 1, item)
@@ -295,7 +295,7 @@ var callback = object : AppMaster.Callback {
                 }
             }
             if (isEditMode) {
-                uiGroup.button("＋") {
+                uiGroup.button(CharSymbol.PLUS) {
                     action {
                         add(group)
                     }
