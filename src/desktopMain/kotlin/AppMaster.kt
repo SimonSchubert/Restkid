@@ -17,9 +17,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.io.charsets.Charsets
 import kotlinx.io.core.String
 import kotlinx.serialization.ImplicitReflectionSerializer
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonParsingException
-import kotlinx.serialization.stringify
 import models.*
 import kotlin.system.getTimeMillis
 
@@ -150,14 +147,7 @@ class AppMaster(private val callback: Callback) {
                     }
 
                     if (response.status == HttpStatusCode.OK) {
-                        val text = response.readText()
-                        val body = try {
-                            val json = Json.nonstrict.parseJson(text)
-                            Json.indented.stringify(json)
-                        } catch (e: JsonParsingException) {
-                            text
-                        }
-
+                        val body = response.readText().prettyJson()
                         val contentSize = response.contentLength() ?: 0
                         val stats = "Status: ${response.status.value} ${response.status.description} / Time: ${getTimeMillis() - startTime} ms / Size: ${contentSize.formatToHumanReadableSize()}"
 
@@ -185,7 +175,7 @@ class AppMaster(private val callback: Callback) {
                     callback.onKeepRequestChanges(it)
                 }
                 requestItem = it
-                callback.onShowRequest(it.request.url, it.request.method, it.request.headers, it.request.body)
+                callback.onShowRequest(it.request.url, it.request.method, it.request.headers, it.request.body.prettyJson())
             }, { current: String, requestGroup: RequestGroup?, requestItem: RequestItem? ->
                 callback.onShowNameDialog("Rename", current) { name ->
                     requestGroup?.name = name
@@ -248,27 +238,5 @@ class AppMaster(private val callback: Callback) {
                 }
             }
         }
-    }
-
-    /**
-     * Format bytes to human readable format (e.g. 54.12 KB)
-     */
-    private fun Long.formatToHumanReadableSize(): String {
-        var bytes = this
-        val dictionary = arrayOf("bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
-        var index = 0
-        while (index < dictionary.size) {
-            if (bytes < 1024) {
-                break
-            }
-            bytes /= 1024
-            index++
-        }
-        var string = bytes.toString()
-        val pointIndex = string.indexOf(".")
-        if (string.length > pointIndex + 3) {
-            string = string.substring(0, pointIndex + 3)
-        }
-        return string + " " + dictionary[index]
     }
 }

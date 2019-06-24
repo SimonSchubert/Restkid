@@ -1,8 +1,5 @@
 import io.ktor.http.HttpMethod
 import kotlinx.serialization.ImplicitReflectionSerializer
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonParsingException
-import kotlinx.serialization.stringify
 import libui.ktx.*
 import models.*
 import platform.posix.exit
@@ -343,12 +340,6 @@ var callback = object : AppMaster.Callback {
         for (header in headers) {
             uiHeaders.append(header.key + ": " + header.value + "\n")
         }
-        try {
-            val json = Json.nonstrict.parseJson(body)
-            uiBody.value = Json.indented.stringify(json)
-        } catch (e: JsonParsingException) {
-            uiBody.value = body
-        }
         uiBody.value = body
         uiResponseBody.value = ""
         uiResponseHeader.value = ""
@@ -498,6 +489,9 @@ var callback = object : AppMaster.Callback {
 @ImplicitReflectionSerializer
 var appMaster = AppMaster(callback)
 
+/**
+ * Common implementation of start function
+ */
 @ImplicitReflectionSerializer
 fun main() {
     appMaster.start()
