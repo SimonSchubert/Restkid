@@ -131,12 +131,12 @@ class AppMaster(private val callback: Callback) {
                     val call = client.call(url) {
                         method = m
 
-                        h.forEach {header ->
+                        h.forEach { header ->
                             var key = header.key
                             var value = header.value
 
                             collection.variables.forEach {
-                                it.variables.forEach {variable ->
+                                it.variables.forEach { variable ->
                                     key = key.replace("{{${variable.key}}}", variable.value)
                                     value = value.replace("{{${variable.key}}}", variable.value)
                                 }
@@ -152,7 +152,7 @@ class AppMaster(private val callback: Callback) {
 
                     val response = call.response.receive<HttpResponse>()
 
-                    val headers = response.headers.toMap().toList().joinToString(separator = "\n") {header ->
+                    val headers = response.headers.toMap().toList().joinToString(separator = "\n") { header ->
                         "${header.first} = ${header.second}"
                     }
 

@@ -1,6 +1,8 @@
 import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonParsingException
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.stringify
 
 /**
@@ -36,4 +38,11 @@ internal fun String.prettyJson(): String {
     } catch (ignore: JsonParsingException) {
         this
     }
+}
+
+/**
+ * Get string by key or empty string
+ */
+internal fun JsonObject.optString(key: String): String {
+    return this[key]?.contentOrNull ?: ""
 }

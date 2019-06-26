@@ -1,4 +1,5 @@
 import kotlinx.cinterop.*
+import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonParsingException
 import models.Api
@@ -32,6 +33,7 @@ class CollectionManager {
     /**
      * Load and serialize collection from collection data storage
      */
+    @ImplicitReflectionSerializer
     internal fun loadCollection(path: String): Api {
         var collection: Api? = null
         memScoped {
@@ -46,7 +48,8 @@ class CollectionManager {
                     content += nextLine
                 }
 
-                collection = Json.nonstrict.parse(Api.serializer(), content)
+                val parser = CollectionParser()
+                collection = parser.parseCollection(content)
             } catch (e: JsonParsingException) {
                 e.printStackTrace()
             } finally {
