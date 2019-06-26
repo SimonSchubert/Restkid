@@ -131,19 +131,29 @@ class AppMaster(private val callback: Callback) {
                     val call = client.call(url) {
                         method = m
 
-                        h.forEach {
-                            if (it.key == "Content-Type") {
+                        h.forEach {header ->
+                            var key = header.key
+                            var value = header.value
+
+                            collection.variables.forEach {
+                                it.variables.forEach {variable ->
+                                    key = key.replace("{{${variable.key}}}", variable.value)
+                                    value = value.replace("{{${variable.key}}}", variable.value)
+                                }
+                            }
+
+                            if (key == "Content-Type") {
                                 body = TextContent(b, contentType = ContentType.Application.Json)
                             } else {
-                                headers.append(it.key, it.value)
+                                headers.append(key, value)
                             }
                         }
                     }
 
                     val response = call.response.receive<HttpResponse>()
 
-                    val headers = response.headers.toMap().toList().joinToString(separator = "\n") {
-                        it.first + " = " + it.second
+                    val headers = response.headers.toMap().toList().joinToString(separator = "\n") {header ->
+                        "${header.first} = ${header.second}"
                     }
 
                     if (response.status == HttpStatusCode.OK) {
