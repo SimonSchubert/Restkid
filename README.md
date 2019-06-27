@@ -1,7 +1,7 @@
 [![GitHub](https://img.shields.io/github/license/SimonSchubert/Restkid.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Codacy grade](https://img.shields.io/codacy/grade/86b4dab3e71b4dceba007380449a7733.svg)](https://app.codacy.com/project/sschubert89/Restkid/dashboard)
 [![Liberapay receiving](https://img.shields.io/liberapay/receives/arnald.svg)](https://liberapay.com/arnald/donate)
-[![Paypal](https://img.shields.io/badge/paypal-donate-blue.svg?logo=paypal&style=flat)](https://img.shields.io/badge/paypal-donate-blue.svg?logo=paypal&style=flat)
+[![Paypal](https://img.shields.io/badge/paypal-donate-blue.svg?logo=paypal&style=flat)](https://paypal.me/SimonSchubert)
 
 # Restkid
 
