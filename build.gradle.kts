@@ -1,8 +1,8 @@
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 
 plugins {
-    id("kotlin-multiplatform") version "1.3.40"
-    id("kotlinx-serialization") version "1.3.40"
+    id("kotlin-multiplatform") version "1.3.41"
+    id("kotlinx-serialization") version "1.3.41"
     id("com.github.ben-manes.versions") version "0.21.0"
 }
 
