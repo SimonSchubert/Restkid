@@ -8,5 +8,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class VariableSet(
         var name: String = "",
-        var variables: List<Variable> = listOf()
+        var variables: MutableList<Variable> = mutableListOf()
 )

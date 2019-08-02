@@ -242,11 +242,16 @@ class AppMaster(private val callback: Callback) {
         memScoped {
             callback.onShowNameDialog("New set", "") { name ->
                 if (collection.variables.none { it.name == name }) {
-                    val variablesSet = VariableSet(name, listOf())
+                    val existingVariableKeys = collection.variables.firstOrNull()?.variables?.map { Variable(key = it.key) }?.toMutableList() ?: mutableListOf()
+                    val variablesSet = VariableSet(name, existingVariableKeys)
                     collection.variables.add(variablesSet)
                     showVariablesWindow()
                 }
             }
         }
+    }
+
+    private fun saveVariableSet() {
+
     }
 }

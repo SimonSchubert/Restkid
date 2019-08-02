@@ -409,7 +409,8 @@ var callback = object : AppMaster.Callback {
         lateinit var variableBox: Box
         lateinit var comboBox: Combobox
         var variablesChildCount = 0
-        val textfields: MutableList<Pair<TextField, TextField>> = mutableListOf()
+        var previousValue = 0
+        val textFieldPairs: MutableList<Pair<TextField, TextField>> = mutableListOf()
         appWindow("Variables", 100, 30) {
             vbox {
                 label("Selected set")
@@ -422,16 +423,20 @@ var callback = object : AppMaster.Callback {
                         }
                         value = 0
                         action {
-                            variablesChildCount = fillVariables(collection, variableBox, textfields, variablesChildCount)
+                            val variables = textFieldPairs.map { Variable(it.first.value, it.second.value) }.toMutableList()
+                            collection.variables[previousValue].variables = variables
+
+                            previousValue = value
+                            variablesChildCount = fillVariables(collection, variableBox, textFieldPairs, variablesChildCount)
                         }
                     }
-                    button("＋") {
+                    button(CharSymbol.PLUS) {
                         action {
                             this@appWindow.hide()
                             new()
                         }
                     }
-                    button("⌫") {
+                    button(CharSymbol.DELETE) {
                         action {
                             this@appWindow.hide()
                             remove(comboBox.value)
@@ -451,7 +456,7 @@ var callback = object : AppMaster.Callback {
                 variableBox = vbox {
 
                 }
-                button("＋") {
+                button(CharSymbol.PLUS) {
                     action {
                         variableBox.hbox {
                             stretchy = true
@@ -462,22 +467,23 @@ var callback = object : AppMaster.Callback {
                                 stretchy = true
                             }
                             val pair = Pair(key, value)
-                            button("⌫") {
+                            button(CharSymbol.DELETE) {
                                 action {
-                                    textfields.remove(pair)
+                                    textFieldPairs.remove(pair)
                                     this@hbox.hide()
                                 }
                             }
-                            textfields.add(pair)
+                            textFieldPairs.add(pair)
                             variablesChildCount++
                         }
                     }
                 }
-                variablesChildCount = comboBox.fillVariables(collection, variableBox, textfields, variablesChildCount)
+                variablesChildCount = comboBox.fillVariables(collection, variableBox, textFieldPairs, variablesChildCount)
             }
             onClose {
-                val variables = textfields.map { Variable(it.first.value, it.second.value) }
+                val variables = textFieldPairs.map { Variable(it.first.value, it.second.value) }.toMutableList()
                 collection.variables[comboBox.value].variables = variables
+
                 save()
                 this@appWindow.hide()
                 true
@@ -525,21 +531,24 @@ private fun Combobox.fillVariables(collection: Api, variableBox: Box, textFields
     textFields.clear()
 
     var childCount = 0
-    collection.variables.getOrNull(value)?.variables?.forEach {
+    collection.variables.getOrNull(value)?.variables?.forEach { variable ->
         variableBox.hbox {
             stretchy = true
             val key = textfield {
-                value = it.key
+                value = variable.key
                 stretchy = true
             }
             val value = textfield {
-                value = it.value
+                value = variable.value
                 stretchy = true
             }
             val pair = Pair(key, value)
-            button("⌫") {
+            button(CharSymbol.DELETE) {
                 action {
                     textFields.remove(pair)
+                    collection.variables.forEach { variableSet ->
+                        variableSet.variables.removeAll { it.key == variable.key }
+                    }
                     this@hbox.hide()
                 }
             }
